@@ -30,6 +30,13 @@ export default defineConfig({
 			emitTsDeclarations: true
 		})
 	],
+	resolve: {
+		alias: {
+			// @panzoom/panzoom has "type": "module" but its "main" is UMD (no ESM
+			// exports) — pin the real ESM build so SSR and client agree
+			'@panzoom/panzoom': '@panzoom/panzoom/dist/panzoom.es.js'
+		}
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [
