@@ -337,10 +337,12 @@ Default map: don’t draw full power spaghetti — only **selection path** + lis
 
 ### Cache (mirror Tango)
 
-- `tango_mall` — meta, mallVersion, etag, settings subset
-- `tango_floor` — number, snap/svg, graph, portals, translation
-- `tango_shop` — POI catalog
-- `tango_category` — categories
+Implemented table names (schema: `database/schema.surql`):
+
+- `mall_cache` — meta, mallVersion, etag, settings subset
+- `basemap_floor` — number, snap/svg (kept **in DB**, never extracted to files), graph, portals, translation
+- `shop_cache` — POI catalog
+- `category_cache` — categories
 - `basemap_revision` — contentHash, adapterVersion, fetchedAt, syncStatus, lastError
 
 ### Domain (we own)
@@ -367,7 +369,7 @@ Default map: don’t draw full power spaghetti — only **selection path** + lis
 | Pan/zoom        | `@panzoom/panzoom` via `onMount` / **attachment**     |
 | Routing         | `graphology` + shortest path (Dijkstra on `distance`) |
 | Validation      | Zod (shared MapV1/ShopV1)                             |
-| Data            | `surrealdb.js` (+ TanStack Query if useful)           |
+| Data            | SurrealDB **HTTP RPC** via `fetch` (`src/lib/server/db.ts`); `surrealdb.js` dropped — its version gate rejects SurrealDB 3.x |
 | UI              | shadcn-svelte / Bits — side panel, floor switcher     |
 | Explicitly skip | Three, Threlte, Leaflet/Mapbox, Tango web-sdk         |
 
@@ -410,20 +412,24 @@ Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest d
 
 ## Implementation phases
 
+**Status: Phase 0–1 delivered** (commits `chore(ui)`, `feat(data)`, `feat(map)`). Only open Phase-1 item: error banner UI. Next up: Phase 2.
+
 ### Phase 0 — skeleton
 
-- [ ] SvelteKit app + env
-- [ ] Surreal connection
-- [ ] Zod adapters `MapV1`, `MallV1`, `ShopV1` + `ADAPTER_CURRENT`
-- [ ] `basemap_revision` row shape including `syncStatus` / `lastError`
+- [x] SvelteKit app + env
+- [x] Surreal connection (HTTP RPC on port 8008, ns/db `vision`)
+- [x] Zod adapters `MapV1`, `MallV1`, `ShopV1` + `ADAPTER_CURRENT` (`src/lib/tango/adapters/` + 14 vitest tests)
+- [x] `basemap_revision` row shape including `syncStatus` / `lastError`
 
 ### Phase 1 — basemap viewer
 
-- [ ] Sync job: mall + map + shops → validate → Surreal (never clobber on fail)
-- [ ] Error banner when `syncStatus=error`
-- [ ] Floor SVG render + pan/zoom attachment
-- [ ] Floor switcher (`defaultFloorNumber` from mall settings)
-- [ ] Ignore `mapConfig`
+- [x] Sync job: mall + map + shops + categories → validate → Surreal (never clobber on fail) — `src/lib/server/sync.ts`, sync-on-load in `+page.server.ts`, `POST /api/sync`
+- [ ] Error banner when `syncStatus=error` (status + `lastError` are recorded; banner UI TODO)
+- [x] Floor SVG render + pan/zoom (`MapCanvas.svelte` + `@panzoom/panzoom`)
+- [x] Floor switcher (`defaultFloorNumber` from mall settings)
+- [x] Ignore `mapConfig`
+- [x] Layer switch: Walls / Tenants / Categories (category-hue tint) / POI — base geometry always visible
+- [x] Shop click → selection detail panel (Sheet)
 
 ### Phase 2 — walk navigation
 
@@ -462,6 +468,7 @@ Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest d
 ## Implementation notes
 
 - Pull live data via the curl commands below (no checked-in API dumps).
+- shadcn-svelte components are vendored under `src/lib/components/ui/` (registry API unreachable from this network — fetched from shadcn-svelte GitHub source; icons via `@lucide/svelte`).
 - When writing floor SVGs: root `<svg>` needs `xmlns` (Tango often puts it on an inner `<g>`); never nest `<?xml>` if merging floors.
 - Do not commit Tango `sdk-token` values; core GETs work without them.
 - Keep failing Tango payloads **out of git**; private debug folder / object storage only.
