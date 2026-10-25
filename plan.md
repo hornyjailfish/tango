@@ -7,20 +7,21 @@ Not a Tango clone. No 3D.
 
 ## Product
 
-| In scope | Out of scope (for now) |
-|---|---|
-| Interactive **2D** mall map | 3D / GLB / Three / extrude |
-| Multi-floor switcher | Official Tango SDK / iframe embed |
-| Walk routing A→B (client-side, Tango graph) | Ladder/tool logistics solver |
-| Zones + **EE rooms** (our data) | Writing back to Tango |
-| **Power topology**: rooms → boards → breakers → loads | Full IEC / protection-study tooling |
-| Unified search: shop / room / board / breaker → map + feed path | Full CMS (news, banners, marketing) |
-| Shop labels from Tango cache | Angular ngsw / their PWA |
-| VPR: photo → embeddings → pin on map | Perfect TSP / multi-stop planner (later) |
-| SurrealDB as system of record | |
+| In scope                                                        | Out of scope (for now)                   |
+| --------------------------------------------------------------- | ---------------------------------------- |
+| Interactive **2D** mall map                                     | 3D / GLB / Three / extrude               |
+| Multi-floor switcher                                            | Official Tango SDK / iframe embed        |
+| Walk routing A→B (client-side, Tango graph)                     | Ladder/tool logistics solver             |
+| Zones + **EE rooms** (our data)                                 | Writing back to Tango                    |
+| **Power topology**: rooms → boards → breakers → loads           | Full IEC / protection-study tooling      |
+| Unified search: shop / room / board / breaker → map + feed path | Full CMS (news, banners, marketing)      |
+| Shop labels from Tango cache                                    | Angular ngsw / their PWA                 |
+| VPR: photo → embeddings → pin on map                            | Perfect TSP / multi-stop planner (later) |
+| SurrealDB as system of record                                   |                                          |
 
 **Users:** internal electrical engineering team.  
 **Core crew questions:**
+
 - How do I walk to X?
 - What feeds this shop / load? (breaker → board → room)
 - Photo → which zone/room is this?
@@ -39,9 +40,9 @@ SvelteKit frontend = 2D map UI + walk routing + search + power path UI
 
 **Two graphs:**
 
-| Graph | Meaning | Owner |
-|---|---|---|
-| **Walk** | How people move | Tango `floors[].graph` + portals (cached) |
+| Graph     | Meaning               | Owner                                      |
+| --------- | --------------------- | ------------------------------------------ |
+| **Walk**  | How people move       | Tango `floors[].graph` + portals (cached)  |
 | **Power** | How electricity feeds | Our Surreal: room → board → breaker → load |
 
 **Never** store EE rooms / boards / breakers inside a fake Tango schema.  
@@ -68,28 +69,28 @@ CORS open on probed GETs. **Cache everything in Surreal**; don’t depend on liv
 
 ### Endpoints we use
 
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/mall/:mallId` | Meta, `mallVersion`, schedule, UI settings, `navigation_items`, `figmaUrl` |
-| `GET` | `/mall/:mallId/map` | **Basemap** — floors, SVG, graph, portals (`mapConfig` ignored) |
-| `GET` | `/mall/:mallId/map?3d=true` | Same family; we still ignore 3D |
-| `GET` | `/shop?mall=:mallId` | All POIs/shops (~259 for Dmitrovka) |
-| `GET` | `/shop/:id` | Detail (+ news/activities if ever needed) |
-| `GET` | `/category?mall=:mallId` | Categories (~38) |
-| `GET` | `/mall/:mallId/sdk-token` | Public token → `X-Access-Token` (analytics only; **not required**) |
+| Method | Path                        | Purpose                                                                    |
+| ------ | --------------------------- | -------------------------------------------------------------------------- |
+| `GET`  | `/mall/:mallId`             | Meta, `mallVersion`, schedule, UI settings, `navigation_items`, `figmaUrl` |
+| `GET`  | `/mall/:mallId/map`         | **Basemap** — floors, SVG, graph, portals (`mapConfig` ignored)            |
+| `GET`  | `/mall/:mallId/map?3d=true` | Same family; we still ignore 3D                                            |
+| `GET`  | `/shop?mall=:mallId`        | All POIs/shops (~259 for Dmitrovka)                                        |
+| `GET`  | `/shop/:id`                 | Detail (+ news/activities if ever needed)                                  |
+| `GET`  | `/category?mall=:mallId`    | Categories (~38)                                                           |
+| `GET`  | `/mall/:mallId/sdk-token`   | Public token → `X-Access-Token` (analytics only; **not required**)         |
 
 ### Example mall
 
-- Id: `6804d32a394e07fd48a1447c`  
-- Name: Tashir - RIO Dmitrovka SM  
+- Id: `6804d32a394e07fd48a1447c`
+- Name: Tashir - RIO Dmitrovka SM
 - Floors in map: `-2, -1, 1, 2, 3`
 
 ### Do not use
 
-- `https://sdk.tango.vision/web-sdk-latest.js` — iframe embed remote control  
-- `https://qr.tango.vision/ngsw-worker.js` — Angular PWA worker  
-- Their internal `tv-3d-sdk` (bundled in QR app)  
-- `mapConfig.threeDObjects` / GLBs  
+- `https://sdk.tango.vision/web-sdk-latest.js` — iframe embed remote control
+- `https://qr.tango.vision/ngsw-worker.js` — Angular PWA worker
+- Their internal `tv-3d-sdk` (bundled in QR app)
+- `mapConfig.threeDObjects` / GLBs
 - Figma as runtime source (SVG already in map; `figmaUrl` is design reference only)
 
 ---
@@ -121,14 +122,14 @@ CORS open on probed GETs. **Cache everything in Surreal**; don’t depend on liv
 
 ### Semantics
 
-| Piece | Role |
-|---|---|
-| `snap` | Visual geometry (`decodeURIComponent` → SVG paths) |
-| `graph` | Walk network; **routing is client-side** (no route API) |
-| `portals` | Stairs / elevator / escalator / travelator — connect floors (not in edges) |
-| `elements` | Type tags: `object`, `kiosk`, `toilet`, `elevator`, … |
-| `idToPoints` | Join key to shops and route targets |
-| Node id format | `{floor}-{x}x{y}` e.g. `2-628.68x947.651` |
+| Piece          | Role                                                                       |
+| -------------- | -------------------------------------------------------------------------- |
+| `snap`         | Visual geometry (`decodeURIComponent` → SVG paths)                         |
+| `graph`        | Walk network; **routing is client-side** (no route API)                    |
+| `portals`      | Stairs / elevator / escalator / travelator — connect floors (not in edges) |
+| `elements`     | Type tags: `object`, `kiosk`, `toilet`, `elevator`, …                      |
+| `idToPoints`   | Join key to shops and route targets                                        |
+| Node id format | `{floor}-{x}x{y}` e.g. `2-628.68x947.651`                                  |
 
 ### Shop ↔ map join
 
@@ -154,15 +155,15 @@ Tango does **not** publish a map schema version. We own the contract.
 
 ### Signals we track
 
-| Signal | Source | Use |
-|---|---|---|
-| `mallVersion` (int) | `GET /mall/:id` | Cheap “anything changed?” |
-| `ETag` | HTTP on mall/shops | Conditional fetch |
-| Shop `updatedAt` / `__v` | shop records | Per-row freshness |
-| **`adapterVersion`** | Our code + Surreal | e.g. `tango-map-v1` — Zod + normalize contract |
-| **`contentHash`** | Hash of normalized map | Geometry/graph content changed |
-| **`syncStatus`** | Surreal | `ok` \| `stale` \| `error` |
-| **`lastError`** | Surreal | Zod/invariant message + raw fingerprint for debug |
+| Signal                   | Source                 | Use                                               |
+| ------------------------ | ---------------------- | ------------------------------------------------- |
+| `mallVersion` (int)      | `GET /mall/:id`        | Cheap “anything changed?”                         |
+| `ETag`                   | HTTP on mall/shops     | Conditional fetch                                 |
+| Shop `updatedAt` / `__v` | shop records           | Per-row freshness                                 |
+| **`adapterVersion`**     | Our code + Surreal     | e.g. `tango-map-v1` — Zod + normalize contract    |
+| **`contentHash`**        | Hash of normalized map | Geometry/graph content changed                    |
+| **`syncStatus`**         | Surreal                | `ok` \| `stale` \| `error`                        |
+| **`lastError`**          | Surreal                | Zod/invariant message + raw fingerprint for debug |
 
 ### Adapter versions (our code)
 
@@ -180,13 +181,13 @@ src/lib/tango/adapters/
 
 ### What “schema changed” looks like
 
-| Failure | Example |
-|---|---|
-| Field removed/renamed | `floors[].snap` missing; `idToPoints` → `id_to_points` |
-| Type change | `distance` string instead of number |
-| Graph semantics change | node id format, portals folded into edges |
-| New required envelope | map wrapped in `{ data: {...} }` |
-| Partial mall | empty floors, truncated payload |
+| Failure                | Example                                                |
+| ---------------------- | ------------------------------------------------------ |
+| Field removed/renamed  | `floors[].snap` missing; `idToPoints` → `id_to_points` |
+| Type change            | `distance` string instead of number                    |
+| Graph semantics change | node id format, portals folded into edges              |
+| New required envelope  | map wrapped in `{ data: {...} }`                       |
+| Partial mall           | empty floors, truncated payload                        |
 
 Zod + invariants catch these **before** Surreal overwrite.
 
@@ -212,41 +213,41 @@ Zod + invariants catch these **before** Surreal overwrite.
 
 ### User-visible behaviour (internal OK to be blunt)
 
-| State | Map UI | Search / EE / power |
-|---|---|---|
-| `ok` | normal | normal |
-| `stale` (sync delayed, still valid cache) | normal + mild “last synced …” | normal |
-| `error` (parse/invariant fail) | **last-good map** + **error banner** | EE/power still work on our data; walk/shop bits from last-good Tango cache |
-| no cache ever | full-screen error: “No basemap — sync failed” + detail | EE CRUD may still work offline of map |
+| State                                     | Map UI                                                 | Search / EE / power                                                        |
+| ----------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `ok`                                      | normal                                                 | normal                                                                     |
+| `stale` (sync delayed, still valid cache) | normal + mild “last synced …”                          | normal                                                                     |
+| `error` (parse/invariant fail)            | **last-good map** + **error banner**                   | EE/power still work on our data; walk/shop bits from last-good Tango cache |
+| no cache ever                             | full-screen error: “No basemap — sync failed” + detail | EE CRUD may still work offline of map                                      |
 
 Do not block the whole app on Tango if Surreal already has a good revision — only block first-run with zero cache.
 
 ### Invariants (beyond Zod)
 
-- Every edge `from`/`to` ∈ nodes  
-- Node ids match `/^-?\d+-[0-9.]+x[0-9.]+$/` (v1 assumption; relax in v2 if Tango changes)  
-- `idToPoints` values ref real nodes  
-- `snap` decodes to SVG with paths  
-- Floors non-empty  
-- Shop `_id` set non-empty when shops payload present  
+- Every edge `from`/`to` ∈ nodes
+- Node ids match `/^-?\d+-[0-9.]+x[0-9.]+$/` (v1 assumption; relax in v2 if Tango changes)
+- `idToPoints` values ref real nodes
+- `snap` decodes to SVG with paths
+- Floors non-empty
+- Shop `_id` set non-empty when shops payload present
 
 ### When contentHash changes but schema OK
 
 Geometry/graph edit from mall side (not contract break):
 
-- Keep EE rooms / boards / breakers / loads as-is  
-- Mark anchors `needs_revalidate=true` if node ids disappeared  
-- UI: “Basemap updated — N rooms need re-anchor”  
-- Soft links to missing `tango_shop_id` → show warning on that load, don’t delete  
+- Keep EE rooms / boards / breakers / loads as-is
+- Mark anchors `needs_revalidate=true` if node ids disappeared
+- UI: “Basemap updated — N rooms need re-anchor”
+- Soft links to missing `tango_shop_id` → show warning on that load, don’t delete
 
 ### Adapter bump checklist (human)
 
-1. Save failing payload sample (private, not git).  
-2. Diff keys vs MapV1.  
-3. New adapter or patch v1.  
-4. Fixture test: old sample + new sample.  
-5. Deploy; re-run sync; confirm banner clears.  
-6. Spot-check walk route + `idToPoints` join.  
+1. Save failing payload sample (private, not git).
+2. Diff keys vs MapV1.
+3. New adapter or patch v1.
+4. Fixture test: old sample + new sample.
+5. Deploy; re-run sync; confirm banner clears.
+6. Spot-check walk route + `idToPoints` join.
 
 ### Our domain schema versioning (separate)
 
@@ -303,12 +304,12 @@ Add explicit connection edges when rings/reserves appear.
 
 One box, multiple indexes:
 
-| Query hits | Then show |
-|---|---|
-| Tango shop name/tags | shop on map + upstream power path if `load` linked |
-| ee_room / zone name | room polygon + boards |
-| board / breaker label | board pin + room + downstream loads/shops |
-| VPR image (later) | zone/room → same electrical panel |
+| Query hits            | Then show                                          |
+| --------------------- | -------------------------------------------------- |
+| Tango shop name/tags  | shop on map + upstream power path if `load` linked |
+| ee_room / zone name   | room polygon + boards                              |
+| board / breaker label | board pin + room + downstream loads/shops          |
+| VPR image (later)     | zone/room → same electrical panel                  |
 
 **“Where does this shop connect?”**
 
@@ -324,11 +325,11 @@ Default map: don’t draw full power spaghetti — only **selection path** + lis
 
 ### Power vs walk
 
-| Question | Graph |
-|---|---|
-| How do I get to the electrical room? | Tango walk graph |
-| What feeds shop X? | Our power graph |
-| Both | Search result can offer “route to room” + “show feed” |
+| Question                             | Graph                                                 |
+| ------------------------------------ | ----------------------------------------------------- |
+| How do I get to the electrical room? | Tango walk graph                                      |
+| What feeds shop X?                   | Our power graph                                       |
+| Both                                 | Search result can offer “route to room” + “show feed” |
 
 ---
 
@@ -336,22 +337,22 @@ Default map: don’t draw full power spaghetti — only **selection path** + lis
 
 ### Cache (mirror Tango)
 
-- `tango_mall` — meta, mallVersion, etag, settings subset  
-- `tango_floor` — number, snap/svg, graph, portals, translation  
-- `tango_shop` — POI catalog  
-- `tango_category` — categories  
-- `basemap_revision` — contentHash, adapterVersion, fetchedAt, syncStatus, lastError  
+- `tango_mall` — meta, mallVersion, etag, settings subset
+- `tango_floor` — number, snap/svg, graph, portals, translation
+- `tango_shop` — POI catalog
+- `tango_category` — categories
+- `basemap_revision` — contentHash, adapterVersion, fetchedAt, syncStatus, lastError
 
 ### Domain (we own)
 
-- `ee_room` / `zone` — electrical rooms, risers, common zones (spatial + ops)  
-- `board` — panels inside rooms  
-- `breaker` — devices on boards  
-- `load` — circuits/tenancies; optional `tango_shop_id`  
-- `breaker_connection` — optional non-tree power edges  
-- `vpr_hit` / `marker` — confirmed visual searches  
-- `work_order` (later) — batch of markers / jobs  
-- auth/users as needed  
+- `ee_room` / `zone` — electrical rooms, risers, common zones (spatial + ops)
+- `board` — panels inside rooms
+- `breaker` — devices on boards
+- `load` — circuits/tenancies; optional `tango_shop_id`
+- `breaker_connection` — optional non-tree power edges
+- `vpr_hit` / `marker` — confirmed visual searches
+- `work_order` (later) — batch of markers / jobs
+- auth/users as needed
 
 **Images + embeddings:** Surreal v3 bucket + vector features (per product direction).
 
@@ -359,49 +360,49 @@ Default map: don’t draw full power spaghetti — only **selection path** + lis
 
 ## Frontend stack
 
-| Piece | Choice |
-|---|---|
-| App | **SvelteKit** |
-| Basemap | Decoded floor SVG |
-| Pan/zoom | `@panzoom/panzoom` via `onMount` / **attachment** |
-| Routing | `graphology` + shortest path (Dijkstra on `distance`) |
-| Validation | Zod (shared MapV1/ShopV1) |
-| Data | `surrealdb.js` (+ TanStack Query if useful) |
-| UI | shadcn-svelte / Bits — side panel, floor switcher |
-| Explicitly skip | Three, Threlte, Leaflet/Mapbox, Tango web-sdk |
+| Piece           | Choice                                                |
+| --------------- | ----------------------------------------------------- |
+| App             | **SvelteKit**                                         |
+| Basemap         | Decoded floor SVG                                     |
+| Pan/zoom        | `@panzoom/panzoom` via `onMount` / **attachment**     |
+| Routing         | `graphology` + shortest path (Dijkstra on `distance`) |
+| Validation      | Zod (shared MapV1/ShopV1)                             |
+| Data            | `surrealdb.js` (+ TanStack Query if useful)           |
+| UI              | shadcn-svelte / Bits — side panel, floor switcher     |
+| Explicitly skip | Three, Threlte, Leaflet/Mapbox, Tango web-sdk         |
 
 ### Multi-floor routing
 
-- Per-floor graphs from edges  
-- Add synthetic portal edges between floors using portal `idToPoints`  
-- Path UI splits legs per floor + portal steps  
+- Per-floor graphs from edges
+- Add synthetic portal edges between floors using portal `idToPoints`
+- Path UI splits legs per floor + portal steps
 
 ### Unified search UI
 
-- Single search: shops + ee_rooms + boards + breakers (+ zones)  
-- Result actions: **focus map**, **show feed path**, **walk route to room**  
-- Unlinked shop → CTA “Link to breaker/load”  
+- Single search: shops + ee_rooms + boards + breakers (+ zones)
+- Result actions: **focus map**, **show feed path**, **walk route to room**
+- Unlinked shop → CTA “Link to breaker/load”
 
 ### VPR UI (later)
 
-1. Upload/capture image  
-2. Backend embed + query Surreal zones/rooms  
-3. Top-K → pins on map  
-4. Confirm → marker; open electrical context for that room if any  
+1. Upload/capture image
+2. Backend embed + query Surreal zones/rooms
+3. Top-K → pins on map
+4. Confirm → marker; open electrical context for that room if any
 
 ### Batch “best walk path” (later, low prio)
 
-- Confirmed markers → pairwise Dijkstra → nearest-neighbor + **2-opt**  
-- Not TSP-with-tools; no ladder inventory solver  
+- Confirmed markers → pairwise Dijkstra → nearest-neighbor + **2-opt**
+- Not TSP-with-tools; no ladder inventory solver
 
 ---
 
 ## Backend / services
 
-- SvelteKit server routes or small API next to Surreal  
-- Jobs: Tango sync cron (adapter + status); embedding worker for VPR  
-- Secrets: Surreal creds only; Tango token not required for core  
-- Sync failures written to `basemap_revision.lastError`; surface in UI  
+- SvelteKit server routes or small API next to Surreal
+- Jobs: Tango sync cron (adapter + status); embedding worker for VPR
+- Secrets: Surreal creds only; Tango token not required for core
+- Sync failures written to `basemap_revision.lastError`; surface in UI
 
 Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest drops image+text → VPR pipeline.
 
@@ -411,75 +412,75 @@ Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest d
 
 ### Phase 0 — skeleton
 
-- [ ] SvelteKit app + env  
-- [ ] Surreal connection  
-- [ ] Zod adapters `MapV1`, `MallV1`, `ShopV1` + `ADAPTER_CURRENT`  
-- [ ] `basemap_revision` row shape including `syncStatus` / `lastError`  
+- [ ] SvelteKit app + env
+- [ ] Surreal connection
+- [ ] Zod adapters `MapV1`, `MallV1`, `ShopV1` + `ADAPTER_CURRENT`
+- [ ] `basemap_revision` row shape including `syncStatus` / `lastError`
 
 ### Phase 1 — basemap viewer
 
-- [ ] Sync job: mall + map + shops → validate → Surreal (never clobber on fail)  
-- [ ] Error banner when `syncStatus=error`  
-- [ ] Floor SVG render + pan/zoom attachment  
-- [ ] Floor switcher (`defaultFloorNumber` from mall settings)  
-- [ ] Ignore `mapConfig`  
+- [ ] Sync job: mall + map + shops → validate → Surreal (never clobber on fail)
+- [ ] Error banner when `syncStatus=error`
+- [ ] Floor SVG render + pan/zoom attachment
+- [ ] Floor switcher (`defaultFloorNumber` from mall settings)
+- [ ] Ignore `mapConfig`
 
 ### Phase 2 — walk navigation
 
-- [ ] In-memory walk graph from cached floors + portals  
-- [ ] Click destination (shop or node) → route draw  
-- [ ] Optional “from” pin / locate stub  
+- [ ] In-memory walk graph from cached floors + portals
+- [ ] Click destination (shop or node) → route draw
+- [ ] Optional “from” pin / locate stub
 
 ### Phase 3 — zones / EE rooms
 
-- [ ] `ee_room` CRUD + draw layer  
-- [ ] Anchor to `tango_node_ids`  
-- [ ] Revalidate flags when `contentHash` changes  
+- [ ] `ee_room` CRUD + draw layer
+- [ ] Anchor to `tango_node_ids`
+- [ ] Revalidate flags when `contentHash` changes
 
 ### Phase 4 — electrical topology + search
 
-- [ ] `board`, `breaker`, `load` (+ optional `breaker_connection`)  
-- [ ] Link `load.tango_shop_id`  
-- [ ] Upstream/downstream walk on power tree  
-- [ ] Unified search → map focus + feed tree drawer + optional walk-to-room  
+- [ ] `board`, `breaker`, `load` (+ optional `breaker_connection`)
+- [ ] Link `load.tango_shop_id`
+- [ ] Upstream/downstream walk on power tree
+- [ ] Unified search → map focus + feed tree drawer + optional walk-to-room
 
 ### Phase 5 — VPR
 
-- [ ] Image bucket + embedding pipeline  
-- [ ] Search → ranked zones/rooms → confirm marker  
-- [ ] Tie marker to room electrical context when present  
+- [ ] Image bucket + embedding pipeline
+- [ ] Search → ranked zones/rooms → confirm marker
+- [ ] Tie marker to room electrical context when present
 
 ### Phase 6 — crew polish (as needed)
 
-- [ ] Work list / jobs  
-- [ ] Multi-stop walk 2-opt  
-- [ ] Auth / roles  
-- [ ] Admin “last sync error” detail page  
+- [ ] Work list / jobs
+- [ ] Multi-stop walk 2-opt
+- [ ] Auth / roles
+- [ ] Admin “last sync error” detail page
 
 ---
 
 ## Implementation notes
 
-- Pull live data via the curl commands below (no checked-in API dumps).  
-- When writing floor SVGs: root `<svg>` needs `xmlns` (Tango often puts it on an inner `<g>`); never nest `<?xml>` if merging floors.  
-- Do not commit Tango `sdk-token` values; core GETs work without them.  
-- Keep failing Tango payloads **out of git**; private debug folder / object storage only.  
-- Adapter bump = code change + fixture tests; not a hot config flag guessing JSON.  
+- Pull live data via the curl commands below (no checked-in API dumps).
+- When writing floor SVGs: root `<svg>` needs `xmlns` (Tango often puts it on an inner `<g>`); never nest `<?xml>` if merging floors.
+- Do not commit Tango `sdk-token` values; core GETs work without them.
+- Keep failing Tango payloads **out of git**; private debug folder / object storage only.
+- Adapter bump = code change + fixture tests; not a hot config flag guessing JSON.
 
 ---
 
 ## Design decisions (locked)
 
-1. **2D only** — drop all 3D paths.  
-2. **SvelteKit** — libs via `onMount` / attachments.  
-3. **Tango = basemap + walk graph + shop catalog**; **Surreal = EE + power + VPR + ops**.  
-4. **Walk routing client-side** on cached Tango graph.  
-5. **Power graph is ours** — rooms/boards/breakers/loads; soft-link shops via `tango_shop_id`.  
-6. **Our adapter version + Zod** — Tango has no map schema version.  
-7. **Schema drift:** keep last-good cache; set `syncStatus=error`; **show error to user** (internal tool). Never overwrite cache with invalid payload.  
-8. **Shop API is POI catalog** — not a place to store electrical rooms.  
-9. **SDK token optional** — analytics only.  
-10. **Hard problems later** — ladder heights, tool depots, rings/reserves detail, multi-stop constraints.  
+1. **2D only** — drop all 3D paths.
+2. **SvelteKit** — libs via `onMount` / attachments.
+3. **Tango = basemap + walk graph + shop catalog**; **Surreal = EE + power + VPR + ops**.
+4. **Walk routing client-side** on cached Tango graph.
+5. **Power graph is ours** — rooms/boards/breakers/loads; soft-link shops via `tango_shop_id`.
+6. **Our adapter version + Zod** — Tango has no map schema version.
+7. **Schema drift:** keep last-good cache; set `syncStatus=error`; **show error to user** (internal tool). Never overwrite cache with invalid payload.
+8. **Shop API is POI catalog** — not a place to store electrical rooms.
+9. **SDK token optional** — analytics only.
+10. **Hard problems later** — ladder heights, tool depots, rings/reserves detail, multi-stop constraints.
 
 ---
 
@@ -503,11 +504,11 @@ curl -s "https://api.tango.vision/category?mall=6804d32a394e07fd48a1447c" -o cat
 
 ## Success criteria (MVP)
 
-- Open app → Dmitrovka plan, floor switch, pan/zoom  
-- Pick/search shop → walk route on graph  
-- Create EE room → on map (Surreal)  
-- Board + breaker + load linked to a shop → search shop → **feed tree + room highlight**  
-- Kill/break Tango payload in dev → sync fails → **banner + last-good map still works**  
-- (VPR slice) image → candidate room pins → confirm  
+- Open app → Dmitrovka plan, floor switch, pan/zoom
+- Pick/search shop → walk route on graph
+- Create EE room → on map (Surreal)
+- Board + breaker + load linked to a shop → search shop → **feed tree + room highlight**
+- Kill/break Tango payload in dev → sync fails → **banner + last-good map still works**
+- (VPR slice) image → candidate room pins → confirm
 
 When that works, the rest is enrichment.
