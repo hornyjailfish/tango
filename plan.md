@@ -51,14 +51,19 @@ SvelteKit frontend = 2D map UI + walk routing + search + power path UI
 ### Layers on the map
 
 ```text
-0  Floor SVG (Tango snap)
-1  Walk route polyline (Tango graph)
-2  Shops / POI labels (Tango shop cache) — secondary
-3  EE rooms + common zones (Surreal)     — primary ops layer
-4  Boards (pins inside rooms)
-5  Selection: power-path highlight (shop ↔ breaker ↔ board ↔ room)
-6  VPR markers / work pins (Surreal)
+0  Floor plate (Tango snap `over` group) — always on
+1  Walls (Tango snap `g#wall`)
+2  Walk paths (Tango snap `waypath` — red/blue strokes; hideable)
+3  Tenants / shops (Tango `objects` groups `*(object)` — clickable → shop_cache)
+4  POI (kiosk / toilet / elevator / stairs / …)
+5  Walk *route* polyline (graph Dijkstra — Phase 2)
+6  EE rooms + common zones (Surreal)     — primary ops layer
+7  Boards (pins inside rooms)
+8  Selection: power-path highlight (shop ↔ breaker ↔ board ↔ room)
+9  VPR markers / work pins (Surreal)
 ```
+
+**Not map layers:** shop categories (badges / search only).
 
 ---
 
@@ -194,21 +199,21 @@ Zod + invariants catch these **before** Surreal overwrite.
 ### Sync flow
 
 ```text
-1. GET /mall/:id
-2. if mallVersion + ETag unchanged and syncStatus=ok → stop
-3. GET /map, /shop, /category
-4. Zod safeParse with current adapter (MapV1 / ShopV1 / MallV1)
-5. Invariant checks (see below)
-6a. SUCCESS:
-      - upsert normalized cache
-      - contentHash, adapterVersion, syncStatus=ok, clear lastError
-      - if contentHash changed → flag ee anchors for re-check (don’t delete EE data)
-6b. FAILURE:
-      - do NOT overwrite last-good basemap
-      - syncStatus=error, store lastError (path + zod issues + sample keys)
-      - app banner: “Basemap sync failed — using map from {fetchedAt}. {short reason}”
-      - optional: notify admin channel later
-7. UI always reads Surreal cache, never live Tango (except sync job)
+1. UI load → basemap.ts reads Surreal (mall / floors / shops / revision)
+2. If cache empty OR client POST /api/sync:
+     GET /mall/:id
+     if mallVersion + ETag unchanged and syncStatus=ok → stop (when cache present)
+     GET /map, /shop?mall=, /category
+     Zod safeParse (MapV1 / ShopV1 / MallV1) + invariants
+3a. SUCCESS:
+      upsert via cache.ts (JSON string + encoding::json::decode — see notes)
+      contentHash, adapterVersion, syncStatus=ok, clear lastError
+3b. FAILURE:
+      do NOT overwrite last-good basemap
+      syncStatus=error, store lastError
+      Alert banner on +page (destructive / stale)
+4. UI always reads Surreal; Tango only inside sync job
+5. Empty cache + API down → graceful error meta (no 500 crash)
 ```
 
 ### User-visible behaviour (internal OK to be blunt)
@@ -337,13 +342,18 @@ Default map: don’t draw full power spaghetti — only **selection path** + lis
 
 ### Cache (mirror Tango)
 
-Implemented table names (schema: `database/schema.surql`):
+Implemented table names (schema: `database/schema.surql`).
+Access: `src/lib/server/cache.ts` (get/upsert) ← `sync.ts` writes, `basemap.ts` reads.
 
-- `mall_cache` — meta, mallVersion, etag, settings subset
-- `basemap_floor` — number, snap/svg (kept **in DB**, never extracted to files), graph, portals, translation
-- `shop_cache` — POI catalog
+- `mall_cache` — meta, mallVersion, theme, defaultFloorNumber, logotype
+- `basemap_floor` — number, snap/svg (**in DB**), graph, portals, translation
+- `shop_cache` — POI catalog (name, logo, floor, categories, searchTags, …)
 - `category_cache` — categories
 - `basemap_revision` — contentHash, adapterVersion, fetchedAt, syncStatus, lastError
+
+**IDs:** Surreal records are `shop_cache:<tangoId>` etc. App-facing ids are **bare tango hex** via `recordKey()` (`src/lib/server/surreal-id.ts`). SVG object ids match bare shop ids.
+
+**RPC note:** Surreal JSON-RPC bind coerces strings like `re:STORE,…` into RecordIds. Upserts pass `JSON.stringify(rows)` and `encoding::json::decode($json)` in SURQL so `searchTags` stay plain strings.
 
 ### Domain (we own)
 
@@ -362,16 +372,18 @@ Implemented table names (schema: `database/schema.surql`):
 
 ## Frontend stack
 
-| Piece           | Choice                                                |
-| --------------- | ----------------------------------------------------- |
-| App             | **SvelteKit**                                         |
-| Basemap         | Decoded floor SVG                                     |
-| Pan/zoom        | `@panzoom/panzoom` via `onMount` / **attachment**     |
-| Routing         | `graphology` + shortest path (Dijkstra on `distance`) |
-| Validation      | Zod (shared MapV1/ShopV1)                             |
-| Data            | SurrealDB **HTTP RPC** via `fetch` (`src/lib/server/db.ts`); `surrealdb.js` dropped — its version gate rejects SurrealDB 3.x |
-| UI              | shadcn-svelte / Bits — side panel, floor switcher     |
-| Explicitly skip | Three, Threlte, Leaflet/Mapbox, Tango web-sdk         |
+| Piece           | Choice                                                                 |
+| --------------- | ---------------------------------------------------------------------- |
+| App             | **SvelteKit** (Svelte 5 runes)                                         |
+| Basemap engine  | **PixiJS** — `MapCanvas.svelte` + `src/lib/map/pixi-floor.ts`          |
+| Floor SVG       | Parsed once per floor (`over` / `waypath` / `objects`); drawn as Graphics |
+| Pan/zoom        | Pixi interaction (no `@panzoom/panzoom`)                               |
+| Routing         | Phase 2: `graphology` + Dijkstra on cached `distance` (not started)    |
+| Validation      | Zod adapters MapV1 / ShopV1 / MallV1                                   |
+| Data            | SurrealDB **HTTP RPC** `fetch` (`db.ts`); no `surrealdb.js` (3.x gate) |
+| UI              | shadcn-svelte (vendored) / Bits — sheet, layers, floor tabs, alerts    |
+| State           | `src/lib/state/map.svelte.ts` — floor, layers, selection               |
+| Explicitly skip | Three, Threlte, Leaflet/Mapbox, Tango web-sdk, category-as-map-layer   |
 
 ### Multi-floor routing
 
@@ -412,30 +424,37 @@ Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest d
 
 ## Implementation phases
 
-**Status: Phase 0–1 delivered** (commits `chore(ui)`, `feat(data)`, `feat(map)`). Only open Phase-1 item: error banner UI. Next up: Phase 2.
+**Status (2025-10-28): Phase 0–1 done.** Next: Phase 2 (walk routing on cached graph).
 
 ### Phase 0 — skeleton
 
 - [x] SvelteKit app + env
 - [x] Surreal connection (HTTP RPC on port 8008, ns/db `vision`)
-- [x] Zod adapters `MapV1`, `MallV1`, `ShopV1` + `ADAPTER_CURRENT` (`src/lib/tango/adapters/` + 14 vitest tests)
+- [x] Zod adapters `MapV1`, `MallV1`, `ShopV1` + `ADAPTER_CURRENT` (`src/lib/tango/adapters/`)
 - [x] `basemap_revision` row shape including `syncStatus` / `lastError`
+- [x] SurrealKit types under `src/lib/types` (schema-driven; app still normalizes via adapters)
 
-### Phase 1 — basemap viewer
+### Phase 1 — basemap viewer ✅
 
-- [x] Sync job: mall + map + shops + categories → validate → Surreal (never clobber on fail) — `src/lib/server/sync.ts`, sync-on-load in `+page.server.ts`, `POST /api/sync`
-- [ ] Error banner when `syncStatus=error` (status + `lastError` are recorded; banner UI TODO)
-- [x] Floor SVG render + pan/zoom (`MapCanvas.svelte` + `@panzoom/panzoom`)
-- [x] Floor switcher (`defaultFloorNumber` from mall settings)
-- [x] Ignore `mapConfig`
-- [x] Layer switch: Walls / Tenants / Categories (category-hue tint) / POI — base geometry always visible
-- [x] Shop click → selection detail panel (Sheet)
+- [x] Sync job: mall + map + shops + categories → validate → Surreal (never clobber on fail) — `sync.ts`, empty-cache sync in `basemap.ts`, `POST /api/sync`
+- [x] Error / stale **Alert** banners on `+page.svelte` from `revision.syncStatus` + `lastError`
+- [x] Empty DB → one blocking Tango sync; API down → graceful error meta (no crash)
+- [x] Pixi floor render + pan/zoom (`MapCanvas.svelte`, `pixi-floor.ts`)
+- [x] Floor switcher (`defaultFloorNumber` from mall)
+- [x] Ignore `mapConfig` / 3D
+- [x] Layer switch: **Walls / Tenants / POI / Walk** (base plate always on; categories ≠ layers)
+- [x] SVG group parse: `over` (base+walls), `waypath` (walk), `objects` (`(object)` shops, POI hints)
+- [x] Shop hit-test on shape path (not loose bbox); click → `SelectionPanel` (Sheet) via bulk `shop_cache`
+- [x] Id join: bare tango id ↔ `shop_cache:<id>` via `recordKey`
+- [x] Mall theme → CSS / Pixi tint hooks
+- [x] shadcn-svelte components vendored under `src/lib/components/ui/`
 
 ### Phase 2 — walk navigation
 
-- [ ] In-memory walk graph from cached floors + portals
-- [ ] Click destination (shop or node) → route draw
+- [ ] In-memory walk graph from cached floors + portals (`graph` nodes/edges + portal links)
+- [ ] Click destination (shop via `idToPoints` or node) → route polyline on layer 5
 - [ ] Optional “from” pin / locate stub
+- [ ] Multi-floor legs via portals
 
 ### Phase 3 — zones / EE rooms
 
@@ -467,27 +486,32 @@ Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest d
 
 ## Implementation notes
 
-- Pull live data via the curl commands below (no checked-in API dumps).
-- shadcn-svelte components are vendored under `src/lib/components/ui/` (registry API unreachable from this network — fetched from shadcn-svelte GitHub source; icons via `@lucide/svelte`).
-- When writing floor SVGs: root `<svg>` needs `xmlns` (Tango often puts it on an inner `<g>`); never nest `<?xml>` if merging floors.
+- Pull live data via curl below (no checked-in API dumps). Local `.cache/` is **agent scratch only** — not runtime; safe to delete / gitignore. App cache = Surreal via `cache.ts`.
+- shadcn-svelte vendored under `src/lib/components/ui/` (registry often blocked here — copy from shadcn-svelte GitHub / npm package sources; icons `@lucide/svelte`).
+- Floor snap is URL-encoded SVG in DB. Structure that matters for Pixi: `g#over` (floor + `g#wall`), `g#waypath`, `g#objects` with ids `{entityId}(hint)` / `{entityId}(hint|subtype)`.
+- `parseSvgId` takes first `(…)` hint; trailing junk after `)` ignored.
 - Do not commit Tango `sdk-token` values; core GETs work without them.
-- Keep failing Tango payloads **out of git**; private debug folder / object storage only.
-- Adapter bump = code change + fixture tests; not a hot config flag guessing JSON.
+- Keep failing Tango payloads **out of git**.
+- Adapter bump = code change + fixture tests; not a hot config flag.
+- Prefer bulk `GET /shop?mall=` once per sync; avoid per-shop fetches for the panel.
+- `{#each}` keys: use index when tag strings can duplicate (SelectionPanel).
 
 ---
 
 ## Design decisions (locked)
 
 1. **2D only** — drop all 3D paths.
-2. **SvelteKit** — libs via `onMount` / attachments.
+2. **SvelteKit + Svelte 5 runes**; map engine **PixiJS** (not DOM SVG + panzoom).
 3. **Tango = basemap + walk graph + shop catalog**; **Surreal = EE + power + VPR + ops**.
-4. **Walk routing client-side** on cached Tango graph.
+4. **Walk routing client-side** on cached Tango graph (Phase 2).
 5. **Power graph is ours** — rooms/boards/breakers/loads; soft-link shops via `tango_shop_id`.
 6. **Our adapter version + Zod** — Tango has no map schema version.
-7. **Schema drift:** keep last-good cache; set `syncStatus=error`; **show error to user** (internal tool). Never overwrite cache with invalid payload.
-8. **Shop API is POI catalog** — not a place to store electrical rooms.
+7. **Schema drift:** keep last-good cache; set `syncStatus=error`; **show error to user**. Never overwrite cache with invalid payload.
+8. **Shop API is POI catalog** — not a place to store electrical rooms. Categories are metadata, not map layers.
 9. **SDK token optional** — analytics only.
 10. **Hard problems later** — ladder heights, tool depots, rings/reserves detail, multi-stop constraints.
+11. **App ids = bare tango ids**; Surreal record keys `table:id` stripped at cache read boundary.
+12. **Bulk shop list once** — panel resolves from in-memory `meta.shops`, not live per-id GETs.
 
 ---
 
@@ -511,11 +535,28 @@ curl -s "https://api.tango.vision/category?mall=6804d32a394e07fd48a1447c" -o cat
 
 ## Success criteria (MVP)
 
-- Open app → Dmitrovka plan, floor switch, pan/zoom
-- Pick/search shop → walk route on graph
-- Create EE room → on map (Surreal)
-- Board + breaker + load linked to a shop → search shop → **feed tree + room highlight**
-- Kill/break Tango payload in dev → sync fails → **banner + last-good map still works**
-- (VPR slice) image → candidate room pins → confirm
+- [x] Open app → Dmitrovka plan, floor switch, pan/zoom (Pixi)
+- [x] Toggle walls / tenants / poi / walk; click shop → detail sheet from cache
+- [x] Empty DB first run syncs from Tango; API down → banner, no crash
+- [x] Bad sync → last-good map + error banner
+- [ ] Pick/search shop → walk route on graph *(Phase 2)*
+- [ ] Create EE room → on map (Surreal)
+- [ ] Board + breaker + load linked to a shop → search shop → **feed tree + room highlight**
+- [ ] (VPR slice) image → candidate room pins → confirm
 
 When that works, the rest is enrichment.
+
+---
+
+## Current snapshot
+
+| Area | State |
+| ---- | ----- |
+| Adapters + vitest | OK (`tango-map-v1`) |
+| Sync / cache / basemap load | OK; JSON-decode upserts; `recordKey` ids |
+| Pixi map + layers + shop click | OK |
+| Selection panel | OK (tags keyed by index) |
+| shadcn ui kit | Vendored; usable |
+| Walk routing | **Not started** — Phase 2 |
+| EE / power / VPR | Not started — Phases 3–5 |
+| `.cache/` on disk | Scratch only; not part of product |
