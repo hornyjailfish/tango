@@ -1,5 +1,6 @@
 import { query } from './db';
 import { recordKey } from './surreal-id.js';
+import { buildShopSearchFields } from '#lib/map/shop-search-text.js';
 import {
 	ensureMallTheme,
 	type NormalizedFloor,
@@ -68,7 +69,7 @@ export async function getFloors(): Promise<NormalizedFloor[]> {
 	const rows = await query<NormalizedFloor[]>(
 		'SELECT number FROM basemap_floor ORDER BY number ASC'
 	);
-	return asList(rows);
+	return asList<NormalizedFloor>(rows);
 }
 
 export async function getFloor(number: number): Promise<NormalizedFloor | null> {
@@ -81,15 +82,20 @@ export async function getFloor(number: number): Promise<NormalizedFloor | null> 
 
 export async function upsertShops(shops: NormalizedShop[]): Promise<void> {
 	// JSON string + decode: RPC bind would turn searchTags like "re:STORE,…" into RecordIds.
+	// searchName / searchTagsText feed separate BM25 indexes (name ranks above tags).
+	const payload = shops.map((s) => ({
+		...s,
+		...buildShopSearchFields(s)
+	}));
 	await query(
 		'FOR $s IN encoding::json::decode($json) { UPSERT type::record("shop_cache", $s.id) CONTENT $s; };',
-		{ json: JSON.stringify(shops) }
+		{ json: JSON.stringify(payload) }
 	);
 }
 
 export async function getShops(): Promise<NormalizedShop[]> {
 	const rows = await query<NormalizedShop[]>('SELECT * FROM shop_cache');
-	return asList(rows).map((raw) => ({
+	return asList<NormalizedShop>(rows).map((raw) => ({
 		...raw,
 		id: recordKey(raw.id, 'shop_cache'),
 		name: raw.name ?? '',
@@ -108,7 +114,7 @@ export async function upsertCategories(categories: NormalizedCategory[]): Promis
 
 export async function getCategories(): Promise<NormalizedCategory[]> {
 	const rows = await query<NormalizedCategory[]>('SELECT * FROM category_cache');
-	return asList(rows).map((c) => ({
+	return asList<NormalizedCategory>(rows).map((c) => ({
 		...c,
 		id: recordKey(c.id, 'category_cache'),
 		name: c.name ?? recordKey(c.id, 'category_cache')

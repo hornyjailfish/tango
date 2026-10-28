@@ -17,6 +17,7 @@
 		class: className,
 		side = "right",
 		showCloseButton = true,
+		showOverlay = true,
 		portalProps,
 		children,
 		...restProps
@@ -24,12 +25,16 @@
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof SheetPortal>>;
 		side?: Side;
 		showCloseButton?: boolean;
+		/** Dimmed/blurred backdrop. Off for map selection so the canvas stays clear. */
+		showOverlay?: boolean;
 		children: Snippet;
 	} = $props();
 </script>
 
 <SheetPortal {...portalProps}>
-	<SheetOverlay />
+	{#if showOverlay}
+		<SheetOverlay />
+	{/if}
 	<SheetPrimitive.Content
 		bind:ref
 		data-slot="sheet-content"

@@ -21,9 +21,7 @@ export interface BasemapRevision {
 	contentHash?: string | null;
 	etag?: string | null;
 	fetchedAt?: Date | string | null;
-	lastError: {
-		issues: string[];
-	};
+	lastError: unknown;
 	mallVersion?: number | null;
 	syncStatus: string;
 }
@@ -53,6 +51,7 @@ export interface ShopCache {
 	name: string;
 	roomNumber?: string | null;
 	searchTags?: string | null;
+	searchText: string;
 	shortDescription?: string | null;
 	updatedAt?: string | null | Date;
 }

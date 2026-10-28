@@ -56,7 +56,11 @@
 		if (!v) view.selection = null;
 	}}
 >
-	<Sheet.Content side="right" class="flex w-[400px] flex-col gap-0 sm:max-w-[440px]">
+	<Sheet.Content
+		side="right"
+		showOverlay={false}
+		class="flex w-[400px] flex-col gap-0 sm:max-w-[440px]"
+	>
 		<Sheet.Header class="border-b pb-4">
 			<div class="flex items-start gap-3">
 				{#if logo}

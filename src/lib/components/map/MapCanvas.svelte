@@ -22,6 +22,11 @@
 
 	let host: HTMLDivElement | undefined = $state();
 	let sceneRef = $state.raw<FloorScene | null>(null);
+	let worldRef = $state.raw<Container | null>(null);
+	let appRef = $state.raw<Application | null>(null);
+	/** Last focusSeq we framed — re-fit when select/selectShop bumps it. */
+	let fittedFocusSeq = $state.raw(0);
+	let fitAnimRaf = 0;
 
 	function entityToSelection(e: FloorEntity) {
 		return {
@@ -39,21 +44,129 @@
 		};
 	}
 
-	function fitWorld(
+	function cancelFitAnim(): void {
+		if (fitAnimRaf) {
+			cancelAnimationFrame(fitAnimRaf);
+			fitAnimRaf = 0;
+		}
+	}
+
+	function targetForBounds(
+		bounds: { x: number; y: number; width: number; height: number },
+		w: number,
+		h: number,
+		opts?: { pad?: number; padRight?: number; maxScale?: number; margin?: number }
+	): { scale: number; x: number; y: number } {
+		const pad = opts?.pad ?? 32;
+		const padRight = opts?.padRight ?? pad;
+		const maxScale = opts?.maxScale ?? 2;
+		// >1 = pull back so the shop doesn't fill the viewport.
+		const margin = opts?.margin ?? 1;
+		const usableW = Math.max(w - pad - padRight, 1);
+		const usableH = Math.max(h - pad * 2, 1);
+		const bw = Math.max(bounds.width, 1) * margin;
+		const bh = Math.max(bounds.height, 1) * margin;
+		const scale = Math.min(usableW / bw, usableH / bh, maxScale);
+		const cx = bounds.x + bounds.width / 2;
+		const cy = bounds.y + bounds.height / 2;
+		const viewCx = pad + usableW / 2;
+		const viewCy = pad + usableH / 2;
+		return { scale, x: viewCx - cx * scale, y: viewCy - cy * scale };
+	}
+
+	function applyWorld(world: Container, t: { scale: number; x: number; y: number }): void {
+		world.scale.set(t.scale);
+		world.position.set(t.x, t.y);
+	}
+
+	function easeOutCubic(t: number): number {
+		return 1 - (1 - t) ** 3;
+	}
+
+	function animateWorldTo(
+		world: Container,
+		target: { scale: number; x: number; y: number },
+		durationMs = 420
+	): void {
+		cancelFitAnim();
+		const from = {
+			scale: world.scale.x,
+			x: world.position.x,
+			y: world.position.y
+		};
+		// Skip animation if already essentially there (e.g. first paint).
+		const dScale = Math.abs(from.scale - target.scale);
+		const dPos = Math.hypot(from.x - target.x, from.y - target.y);
+		if (dScale < 0.002 && dPos < 1.5) {
+			applyWorld(world, target);
+			return;
+		}
+		const start = performance.now();
+		const step = (now: number) => {
+			const t = Math.min(1, (now - start) / durationMs);
+			const e = easeOutCubic(t);
+			world.scale.set(from.scale + (target.scale - from.scale) * e);
+			world.position.set(from.x + (target.x - from.x) * e, from.y + (target.y - from.y) * e);
+			if (t < 1) {
+				fitAnimRaf = requestAnimationFrame(step);
+			} else {
+				fitAnimRaf = 0;
+				applyWorld(world, target);
+			}
+		};
+		fitAnimRaf = requestAnimationFrame(step);
+	}
+
+	function fitBounds(
 		world: Container,
 		bounds: { x: number; y: number; width: number; height: number },
 		w: number,
-		h: number
+		h: number,
+		opts?: {
+			pad?: number;
+			padRight?: number;
+			maxScale?: number;
+			margin?: number;
+			smooth?: boolean;
+			durationMs?: number;
+		}
 	): void {
-		const pad = 32;
-		const sx = (w - pad * 2) / bounds.width;
-		const sy = (h - pad * 2) / bounds.height;
-		const scale = Math.min(sx, sy, 2);
-		world.scale.set(scale);
-		world.position.set(
-			w / 2 - (bounds.x + bounds.width / 2) * scale,
-			h / 2 - (bounds.y + bounds.height / 2) * scale
-		);
+		const target = targetForBounds(bounds, w, h, opts);
+		if (opts?.smooth) animateWorldTo(world, target, opts.durationMs ?? 420);
+		else {
+			cancelFitAnim();
+			applyWorld(world, target);
+		}
+	}
+
+	/** Shop/POI footprint bounds in scene/world local coords (parents are untransformed). */
+	function entityBounds(ent: FloorEntity): { x: number; y: number; width: number; height: number } {
+		const b = ent.hit.getLocalBounds();
+		return {
+			x: b.x,
+			y: b.y,
+			width: Math.max(b.width, 8),
+			height: Math.max(b.height, 8)
+		};
+	}
+
+	function fitToSelection(id: string | null | undefined, smooth = true): boolean {
+		const scene = sceneRef;
+		const world = worldRef;
+		const app = appRef;
+		if (!scene || !world || !app || !id) return false;
+		const ent = scene.entities.get(id);
+		if (!ent) return false;
+		fitBounds(world, entityBounds(ent), app.screen.width, app.screen.height, {
+			pad: 128,
+			padRight: 256,
+			maxScale: 2.2,
+			margin: 3.0,
+			smooth,
+			durationMs: 480
+		});
+		fittedFocusSeq = view.focusSeq;
+		return true;
 	}
 
 	$effect(() => {
@@ -104,6 +217,8 @@
 			app.stage.addChild(worldHost);
 			app.stage.eventMode = 'static';
 			app.stage.hitArea = app.screen;
+			worldRef = worldHost;
+			appRef = app;
 
 			scene = buildFloorScene(floor.svg, floor, shopList, (entity) => {
 				if (panning || dragMoved) return;
@@ -117,8 +232,13 @@
 				poi: layers.poi,
 				walk: layers.walk
 			});
-			setSelectionHighlight(scene, view.selection?.id ?? null, highlightColor);
-			fitWorld(worldHost, scene.bounds, app.screen.width, app.screen.height);
+			const selId = view.selection?.id ?? null;
+			setSelectionHighlight(scene, selId, highlightColor);
+			// Prefer framing the current selection (e.g. search → floor jump); else whole floor.
+			if (!fitToSelection(selId)) {
+				fitBounds(worldHost, scene.bounds, app.screen.width, app.screen.height);
+				fittedFocusSeq = view.focusSeq;
+			}
 
 			const onPointerDown = (ev: PointerEvent) => {
 				dragMoved = false;
@@ -136,6 +256,7 @@
 				dragMoved = true;
 				panning = true;
 				panLast = { x: ev.clientX, y: ev.clientY };
+				cancelFitAnim();
 				worldHost.position.x += dx;
 				worldHost.position.y += dy;
 				canvas.style.cursor = 'grabbing';
@@ -170,6 +291,7 @@
 			const onWheel = (ev: WheelEvent) => {
 				if (!worldHost) return;
 				ev.preventDefault();
+				cancelFitAnim();
 				const rect = canvas.getBoundingClientRect();
 				const mx = ev.clientX - rect.left;
 				const my = ev.clientY - rect.top;
@@ -204,7 +326,11 @@
 
 		return () => {
 			dead = true;
+			cancelFitAnim();
 			sceneRef = null;
+			worldRef = null;
+			appRef = null;
+			fittedFocusSeq = 0;
 			const a = app as (Application & { __dispose?: () => void }) | null;
 			a?.__dispose?.();
 			scene?.destroy();
@@ -226,8 +352,13 @@
 
 	$effect(() => {
 		const s = sceneRef;
+		const id = view.selection?.id ?? null;
+		const seq = view.focusSeq;
 		if (!s) return;
-		setSelectionHighlight(s, view.selection?.id ?? null, highlightColor);
+		setSelectionHighlight(s, id, highlightColor);
+		if (!id) return;
+		if (fittedFocusSeq === seq) return;
+		fitToSelection(id);
 	});
 </script>
 

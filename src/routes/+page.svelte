@@ -7,6 +7,7 @@
 	import LayerSwitch from '#lib/components/map/LayerSwitch.svelte';
 	import FloorSwitcher from '#lib/components/map/FloorSwitcher.svelte';
 	import SelectionPanel from '#lib/components/map/SelectionPanel.svelte';
+	import ShopSearch from '#lib/components/map/ShopSearch.svelte';
 	import { view } from '#lib/state/map.svelte.js';
 	import {
 		themeToCssVars,
@@ -88,17 +89,25 @@
 
 <div class="flex h-dvh flex-col gap-3 p-3">
 	<header class="flex flex-wrap items-center gap-3">
-		<h1 class="text-lg font-semibold">Tango Vision · EE basemap</h1>
+		<h1 class="text-lg font-semibold text-[color:var(--mall-ink,var(--foreground))]">
+			Tango Vision · EE basemap
+		</h1>
 		<Badge variant={statusVariant}>sync: {meta.revision.syncStatus}</Badge>
 		{#if meta.revision.fetchedAt}
 			<span class="text-xs text-muted-foreground">
 				last synced {new Date(meta.revision.fetchedAt).toLocaleString()}
 			</span>
 		{/if}
-		<div class="ml-auto flex items-center gap-3">
+		<div class="ml-auto flex flex-wrap items-center gap-3">
+			<ShopSearch />
 			<FloorSwitcher floors={meta.floors} />
 			<LayerSwitch />
-			<Button variant="outline" class="bg-primary hover:bg-primary/60" onclick={sync} disabled={syncing}>
+			<Button
+				variant="outline"
+				class="border-[color:var(--mall-primary,var(--primary))] bg-[color:var(--mall-primary,var(--primary))] text-[color:var(--mall-on-primary,var(--primary-foreground))] hover:bg-[color:var(--mall-primary-deep,var(--primary))]"
+				onclick={sync}
+				disabled={syncing}
+			>
 				{syncing ? 'Syncing…' : 'Sync'}
 			</Button>
 		</div>
