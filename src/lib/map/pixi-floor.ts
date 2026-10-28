@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, GraphicsPath } from 'pixi.js';
 import type { NormalizedFloor, NormalizedShop } from '#lib/tango/adapters/index.js';
 import {
 	classifyHint,
@@ -46,8 +46,80 @@ function serialize(el: Element): string {
 	return new XMLSerializer().serializeToString(el);
 }
 
-function graphicsFrom(el: Element): Graphics | null {
+/** Split SVG `d` on M/m commands. */
+function splitSubpaths(d: string): string[] {
+	const parts: string[] = [];
+	let start = -1;
+	for (let i = 0; i < d.length; i++) {
+		const c = d.charCodeAt(i);
+		if (c === 77 || c === 109) {
+			if (start >= 0) {
+				const p = d.slice(start, i).trim();
+				if (p) parts.push(p);
+			}
+			start = i;
+		}
+	}
+	if (start >= 0) {
+		const p = d.slice(start).trim();
+		if (p) parts.push(p);
+	}
+	return parts;
+}
+
+function subpathArea(d: string): number {
+	const g = new Graphics().path(new GraphicsPath(d)).fill(0xffffff);
+	const b = g.getLocalBounds();
+	const area = Math.max(b.width, 0) * Math.max(b.height, 0);
+	g.destroy();
+	return area;
+}
+
+/** `#565656` / `white` → pixi color. */
+function parseFill(raw: string | null): number {
+	if (!raw) return 0x565656;
+	const s = raw.trim().toLowerCase();
+	if (s === 'none') return 0x000000;
+	if (s === 'white') return 0xffffff;
+	if (s === 'black') return 0x000000;
+	let h = s.startsWith('#') ? s.slice(1) : s;
+	if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+	const n = Number.parseInt(h, 16);
+	return Number.isFinite(n) ? n : 0x565656;
+}
+
+/**
+ * Compound wall rings (floor -2) list the *inner* subpath first. Pixi hole detection needs
+ * the largest ring filled, then smaller rings cut — do that explicitly.
+ */
+function graphicsFromCompoundPath(pathEl: Element): Graphics | null {
+	const d = pathEl.getAttribute('d') ?? '';
+	const parts = splitSubpaths(d);
+	if (parts.length < 2) return null;
+	const fill = parseFill(pathEl.getAttribute('fill'));
+	const ranked = parts
+		.map((p) => ({ p, area: subpathArea(p) }))
+		.sort((a, b) => b.area - a.area);
+	const g = new Graphics();
+	g.path(new GraphicsPath(ranked[0].p)).fill(fill);
+	for (let i = 1; i < ranked.length; i++) {
+		g.path(new GraphicsPath(ranked[i].p)).cut();
+	}
+	const b = g.getLocalBounds();
+	if (b.width <= 0 && b.height <= 0) {
+		g.destroy();
+		return null;
+	}
+	return g;
+}
+
+function graphicsFrom(el: Element, holeRing = false): Graphics | null {
 	try {
+		// Wall rings only: multi-subpath path → largest fill + cut holes (floor -2).
+		if (holeRing && el.tagName.toLowerCase() === 'path') {
+			const compound = graphicsFromCompoundPath(el);
+			if (compound) return compound;
+		}
 		const g = new Graphics().svg(wrapSvg(serialize(el)));
 		const b = g.getLocalBounds();
 		if (b.width <= 0 && b.height <= 0) {
@@ -58,6 +130,14 @@ function graphicsFrom(el: Element): Graphics | null {
 	} catch {
 		return null;
 	}
+}
+
+function isWallId(id: string, cls: string[]): boolean {
+	if (id === 'wall' || id === 'walls' || id.startsWith('wall ') || id.startsWith('wall_')) {
+		return true;
+	}
+	if (cls.includes('wall')) return true;
+	return parseSvgId(id)?.hint === 'wall';
 }
 
 function classesOf(el: Element): string[] {
@@ -200,7 +280,7 @@ export function buildFloorScene(
 		poi: new Container(),
 		highlight: new Container()
 	};
-	// bottom → top: plate, walls under content, then walk/shops/poi, highlight on top
+	// bottom → top: plate, walls, walk, shops, poi, highlight
 	world.sortableChildren = true;
 	layers.base.zIndex = 0;
 	layers.walls.zIndex = 1;
@@ -224,16 +304,11 @@ export function buildFloorScene(
 		for (const child of [...over.children]) {
 			const id = child.getAttribute('id') ?? '';
 			const cls = classesOf(child);
-			const isWall =
-				id === 'wall' ||
-				id.startsWith('wall ') ||
-				cls.includes('wall') ||
-				(parseSvgId(id)?.hint === 'wall');
-
-			const g = graphicsFrom(child);
+			const wall = isWallId(id, cls);
+			const g = graphicsFrom(child, wall);
 			if (!g) continue;
 			g.eventMode = 'none';
-			if (isWall) layers.walls.addChild(g);
+			if (wall) layers.walls.addChild(g);
 			else layers.base.addChild(g);
 		}
 	}
