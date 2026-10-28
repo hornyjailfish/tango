@@ -5,5 +5,6 @@ import type { RequestHandler } from './$types';
 /** Manual / cron trigger for the Tango → Surreal sync job. */
 export const POST: RequestHandler = async () => {
 	const outcome = await syncBasemap();
-	return json(outcome);
+	return Response.json(outcome);
 };
+

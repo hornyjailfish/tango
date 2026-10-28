@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DateTime } from 'surrealdb';
 
 export const SHOP_ADAPTER_VERSION = 'tango-shop-v1';
 
@@ -19,6 +20,7 @@ export const shopSchema = z.looseObject({
 	roomNumber: z.string().nullish(),
 	isActive: z.boolean().nullish(),
 	updatedAt: z.string().nullish()
+	// contacts/social ignored — not needed for internal map tool (looseObject keeps API extras)
 });
 
 export const shopListSchema = z.array(shopSchema);
@@ -37,23 +39,27 @@ export interface NormalizedShop {
 	searchTags: string | null;
 	roomNumber: string | null;
 	isActive: boolean;
-	updatedAt: string | null;
+	updatedAt: DateTime | string | null;
+}
+
+function pickFacade(
+	shop: ShopV1,
+	field: 'name' | 'description' | 'shortDescription'
+): string | null {
+	const locales = Object.keys(shop.facade ?? {});
+	for (const locale of ['ru', 'en', ...locales]) {
+		const value = shop.facade?.[locale]?.[field];
+		if (value) return value;
+	}
+	return null;
 }
 
 export function normalizeShop(shop: ShopV1): NormalizedShop {
-	const locales = Object.keys(shop.facade ?? {});
-	const pick = (field: 'name' | 'description' | 'shortDescription'): string | null => {
-		for (const locale of ['ru', 'en', ...locales]) {
-			const value = shop.facade?.[locale]?.[field];
-			if (value) return value;
-		}
-		return null;
-	};
 	return {
 		id: shop._id,
-		name: pick('name') ?? shop._id,
-		description: pick('description'),
-		shortDescription: pick('shortDescription'),
+		name: pickFacade(shop, 'name') ?? shop._id,
+		description: pickFacade(shop, 'description'),
+		shortDescription: pickFacade(shop, 'shortDescription'),
 		logo: shop.logo ?? null,
 		color: shop.color ?? null,
 		floor: shop.floor ?? null,

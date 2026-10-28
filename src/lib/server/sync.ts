@@ -47,24 +47,15 @@ export function syncBasemap(): Promise<SyncOutcome> {
 async function runSync(): Promise<SyncOutcome> {
 	const prev = await getRevision();
 
+	// Always pull full mall set once (map + all shops + categories). UI never hits Tango live.
 	let mallRaw, mapRaw, shopsRaw, catsRaw;
 	try {
-		mallRaw = await fetchMall();
-	} catch (err) {
-		return fail(prev, 'mall', err);
-	}
-
-	// Cheap short-circuit: nothing changed since last good sync.
-	if (
-		prev.syncStatus === 'ok' &&
-		prev.mallVersion !== null &&
-		(mallRaw.payload as { mallVersion?: number }).mallVersion === prev.mallVersion
-	) {
-		return { revision: prev, changed: false, source: 'unchanged' };
-	}
-
-	try {
-		[mapRaw, shopsRaw, catsRaw] = await Promise.all([fetchMap(), fetchShops(), fetchCategories()]);
+		[mallRaw, mapRaw, shopsRaw, catsRaw] = await Promise.all([
+			fetchMall(),
+			fetchMap(),
+			fetchShops(),
+			fetchCategories()
+		]);
 	} catch (err) {
 		return fail(prev, 'fetch', err);
 	}

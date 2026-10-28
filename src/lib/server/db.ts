@@ -21,6 +21,10 @@ interface RpcStatement {
 /**
  * Run a SURQL script with bound variables. Returns one result per statement.
  * Throws on transport errors and on any statement with status "ERR".
+ *
+ * Note: JSON-RPC bind params coerce bare `table:id`-looking strings into
+ * RecordIds. For payloads that contain such strings (e.g. shop searchTags),
+ * pass JSON text and decode in SURQL via `encoding::json::decode($json)`.
  */
 export async function query<T = unknown>(
 	sql: string,

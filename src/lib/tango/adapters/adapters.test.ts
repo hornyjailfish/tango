@@ -162,6 +162,22 @@ describe('parseMall (MallV1)', () => {
 		expect(result.data.mallVersion).toBe(7);
 	});
 
+	it('normalizes mall.theme brand colors', () => {
+		const result = parseMall({
+			_id: 'mall-1',
+			theme: {
+				color1: '#e30a7d',
+				map_object_highlight: '#f9c416',
+				map_path_arrow: '#0c94d1'
+			}
+		});
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.data.theme.primary).toBe('#e30a7d');
+		expect(result.data.theme.highlight).toBe('#f9c416');
+		expect(result.data.theme.path).toBe('#0c94d1');
+	});
+
 	it('rejects payloads without _id', () => {
 		expect(parseMall({ name: 'x' }).ok).toBe(false);
 	});

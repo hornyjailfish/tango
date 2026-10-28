@@ -30,5 +30,8 @@ async function getJson<T>(path: string): Promise<RawPayload<T>> {
 
 export const fetchMall = () => getJson<unknown>(`/mall/${mallId()}`);
 export const fetchMap = () => getJson<unknown>(`/mall/${mallId()}/map`);
+/** Full shop list for mall — preferred bulk source (not per-id). */
 export const fetchShops = () => getJson<unknown>(`/shop?mall=${mallId()}`);
+/** Single shop — available but unused by UI (cache is source of truth). */
+export const fetchShop = (id: string) => getJson<unknown>(`/shop/${id}`);
 export const fetchCategories = () => getJson<unknown>(`/category?mall=${mallId()}`);

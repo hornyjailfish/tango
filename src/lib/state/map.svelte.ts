@@ -1,4 +1,4 @@
-export type LayerKey = 'walls' | 'tenants' | 'categories' | 'poi';
+export type LayerKey = 'walls' | 'tenants' | 'poi' | 'walk';
 
 export interface Selection {
 	kind: 'shop' | 'poi';
@@ -17,8 +17,8 @@ export interface Selection {
 export const layers = $state<Record<LayerKey, boolean>>({
 	walls: true,
 	tenants: true,
-	categories: false,
-	poi: true
+	poi: true,
+	walk: true
 });
 
 export const view = $state<{

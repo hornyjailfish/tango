@@ -23,22 +23,56 @@ export interface BasemapMeta {
 	categories: NormalizedCategory[];
 }
 
+function isEmptyCache(
+	revision: BasemapRevision,
+	floors: { number: number }[],
+	mall: NormalizedMall | null
+): boolean {
+	if (revision.lastError?.fingerprint === 'no-cache') return true;
+	if (revision.contentHash === null && floors.length === 0 && mall === null) return true;
+	if (floors.length === 0) return true;
+	return false;
+}
+
 /**
- * UI entry point: reads the Surreal cache only.
- * First run with zero cache blocks on one sync (plan.md: "only block first-run with zero cache").
+ * UI entry point: always serves from Surreal.
+ * Empty cache → block once on Tango sync; if API is down, return graceful error meta (no throw).
  */
 export async function getBasemapMeta(): Promise<BasemapMeta> {
 	let revision = await getRevision();
-	if (revision.lastError?.fingerprint === 'no-cache') {
-		const outcome = await syncBasemap();
-		revision = outcome.revision;
-	}
-	const [mall, floors, shops, categories] = await Promise.all([
+	let [mall, floors, shops, categories] = await Promise.all([
 		getMall(),
 		getFloors(),
 		getShops(),
 		getCategories()
 	]);
+
+	if (isEmptyCache(revision, floors, mall)) {
+		try {
+			const outcome = await syncBasemap();
+			revision = outcome.revision;
+		} catch (err) {
+			// transport-level blow-up (DB down mid-write, etc.) — still return a readable error
+			const message = err instanceof Error ? err.message : String(err);
+			revision = {
+				...revision,
+				syncStatus: 'error',
+				lastError: {
+					path: 'sync',
+					message,
+					issues: [message],
+					fingerprint: message.slice(0, 500)
+				}
+			};
+		}
+		[mall, floors, shops, categories] = await Promise.all([
+			getMall(),
+			getFloors(),
+			getShops(),
+			getCategories()
+		]);
+	}
+
 	return {
 		revision,
 		mall,
