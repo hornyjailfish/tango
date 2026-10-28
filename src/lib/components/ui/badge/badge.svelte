@@ -11,6 +11,7 @@
 				outline: "cn-badge-variant-outline",
 				ghost: "cn-badge-variant-ghost",
 				link: "cn-badge-variant-link",
+				green: "cn-badge-variant-green",
 			},
 		},
 		defaultVariants: {
