@@ -5,11 +5,11 @@
 	const LABELS: Record<LayerKey, string> = {
 		walls: 'Walls',
 		tenants: 'Tenants',
-		categories: 'Categories',
-		poi: 'POI'
+		poi: 'POI',
+		walk: 'Walk'
 	};
 
-	let value = $state((Object.keys(LABELS) as LayerKey[]).filter((k) => layers[k]));
+	let value = $state((Object.keys(LABELS) as LayerKey[]).filter((k) => layers[k] && k != 'walk'));
 
 	$effect(() => {
 		for (const key of Object.keys(LABELS) as LayerKey[]) {

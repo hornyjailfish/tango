@@ -1,229 +1,246 @@
 <script lang="ts">
-	import panzoom from '@panzoom/panzoom';
+	import { Application, Container } from 'pixi.js';
 	import type { NormalizedFloor, NormalizedShop } from '#lib/tango/adapters/index.js';
-	import { layers, view, select, type LayerKey, type Selection } from '#lib/state/map.svelte.js';
+	import {
+		buildFloorScene,
+		setLayerVisibility,
+		setSelectionHighlight,
+		type FloorEntity,
+		type FloorScene
+	} from '#lib/map/pixi-floor.js';
+	import { layers, view, select } from '#lib/state/map.svelte.js';
 
 	let {
 		floorData,
-		shops
-	}: { floorData: NormalizedFloor; shops: NormalizedShop[] } = $props();
+		shops,
+		highlightColor = '#f9c416'
+	}: {
+		floorData: NormalizedFloor;
+		shops: NormalizedShop[];
+		highlightColor?: string;
+	} = $props();
 
-	let container: HTMLDivElement | undefined = $state();
+	let host: HTMLDivElement | undefined = $state();
+	let sceneRef = $state.raw<FloorScene | null>(null);
 
-	const shopById = new Map(shops.map((s) => [s.id, s]));
-	const OBJECT_CLASSES = new Set([
-		'object',
-		'kiosk',
-		'atm',
-		'toilet',
-		'stairs',
-		'escalator',
-		'elevator',
-		'travelator'
-	]);
-
-	let svgEl: SVGSVGElement | null = null;
-	let pz: ReturnType<typeof panzoom> | null = null;
-	let labelGroup: SVGGElement | null = null;
-	const classified = new Map<Element, LayerKey>();
-
-	function sanitize(raw: string): string {
-		return raw
-			.replace(/<script[\s\S]*?<\/script>/gi, '')
-			.replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
-			.replace(/\son\w+\s*=\s*'[^']*'/gi, '')
-			.replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '');
+	function entityToSelection(e: FloorEntity) {
+		return {
+			kind: e.kind,
+			id: e.id,
+			name: e.name,
+			floor: e.floor,
+			categories: e.categories,
+			description: e.description,
+			shortDescription: e.shortDescription,
+			logo: e.logo,
+			color: e.color,
+			roomNumber: e.roomNumber,
+			cls: e.cls
+		};
 	}
 
-	function layerOf(el: Element): LayerKey | null {
-		const id = el.getAttribute('id');
-		const cls = (el.getAttribute('class') ?? '').split(/\s+/);
-		if (id && /^floor\s*-?\d+$/i.test(id)) return null; // root wrapper — always visible
-		if (id === 'over') return null;
-		if (id === 'wall' || cls.includes('wall')) return 'walls';
-		if (id && shopById.has(id)) return 'tenants';
-		if (id && floorData.elements[id]) {
-			const elementCls = floorData.elements[id].cls ?? '';
-			return OBJECT_CLASSES.has(elementCls) ? 'poi' : 'tenants';
-		}
-		return null; // base geometry — always visible
+	function fitWorld(
+		world: Container,
+		bounds: { x: number; y: number; width: number; height: number },
+		w: number,
+		h: number
+	): void {
+		const pad = 32;
+		const sx = (w - pad * 2) / bounds.width;
+		const sy = (h - pad * 2) / bounds.height;
+		const scale = Math.min(sx, sy, 2);
+		world.scale.set(scale);
+		world.position.set(
+			w / 2 - (bounds.x + bounds.width / 2) * scale,
+			h / 2 - (bounds.y + bounds.height / 2) * scale
+		);
 	}
 
-	function catHue(catId: string): number {
-		let h = 0;
-		for (let i = 0; i < catId.length; i++) h = (h * 31 + catId.charCodeAt(i)) % 360;
-		return h;
-	}
+	$effect(() => {
+		const el = host;
+		const floor = floorData;
+		const shopList = shops;
+		if (!el) return;
 
-	function nodeXY(nodeId: string): { x: number; y: number } | null {
-		const m = /^-?\d+-([0-9.]+)x([0-9.]+)$/.exec(nodeId);
-		return m ? { x: Number(m[1]), y: Number(m[2]) } : null;
-	}
+		let dead = false;
+		let app: Application | null = null;
+		let scene: FloorScene | null = null;
+		let worldHost: Container | null = null;
+		let panning = false;
+		let panLast = { x: 0, y: 0 };
+		let dragMoved = false;
 
-	function buildLabels(svg: SVGSVGElement): void {
-		const NS = 'http://www.w3.org/2000/svg';
-		const g = document.createElementNS(NS, 'g');
-		g.setAttribute('data-layer', 'labels');
-		for (const shop of shops) {
-			if (shop.floor !== floorData.number) continue;
-			const nodes = floorData.idToPoints[shop.id];
-			if (!nodes?.length) continue;
-			const xy = nodeXY(nodes[0]);
-			if (!xy) continue;
-			const text = document.createElementNS(NS, 'text');
-			text.setAttribute('class', 'map-label');
-			text.setAttribute('x', String(xy.x));
-			text.setAttribute('y', String(xy.y));
-			text.setAttribute('text-anchor', 'middle');
-			text.textContent = shop.name;
-			g.appendChild(text);
-		}
-		svg.appendChild(g);
-		labelGroup = g;
-	}
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') select(null);
+		};
 
-	function rebuild(): void {
-		if (!container) return;
-		pz?.destroy();
-		pz = null;
-		classified.clear();
-		labelGroup = null;
-		container.innerHTML = sanitize(floorData.svg);
-		const svg = container.querySelector('svg');
-		if (!svg) return;
-		svgEl = svg;
-		try {
-			const bbox = svg.getBBox();
-			if (bbox.width > 0 && bbox.height > 0) {
-				svg.setAttribute(
-					'viewBox',
-					`${bbox.x - 20} ${bbox.y - 20} ${bbox.width + 40} ${bbox.height + 40}`
-				);
-			}
-		} catch {
-			/* getBBox unavailable — keep as-is */
-		}
-		svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-		for (const el of svg.querySelectorAll('[id]')) {
-			const layer = layerOf(el);
-			if (layer) classified.set(el, layer);
-			if (layer === 'tenants') {
-				const id = el.getAttribute('id');
-				const cat = id ? (shopById.get(id)?.categories[0] ?? null) : null;
-				if (cat) {
-					el.setAttribute('data-cat', cat);
-					(el as SVGElement).style.setProperty('--cat-hue', String(catHue(cat)));
-				}
-			}
-		}
-		buildLabels(svg);
-		applyLayers();
-		applySelection();
-		pz = panzoom(svg, { maxZoom: 12, minZoom: 0.15 });
-	}
-
-	function applyLayers(): void {
-		for (const [el, layer] of classified) {
-			el.setAttribute('data-hidden', String(!layers[layer]));
-		}
-		labelGroup?.setAttribute('data-hidden', String(!layers.tenants));
-		svgEl?.setAttribute('data-categories', String(layers.categories));
-	}
-
-	function applySelection(): void {
-		if (!svgEl) return;
-		for (const el of svgEl.querySelectorAll('[data-selected]')) el.removeAttribute('data-selected');
-		const id = view.selection?.id;
-		if (!id) return;
-		for (const el of svgEl.querySelectorAll(`[id]`)) {
-			if (el.getAttribute('id') === id) el.setAttribute('data-selected', 'true');
-		}
-	}
-
-	function toSelection(id: string): Selection | null {
-		const shop = shopById.get(id);
-		if (shop) {
-			return {
-				kind: 'shop',
-				id: shop.id,
-				name: shop.name,
-				floor: shop.floor,
-				categories: shop.categories,
-				description: shop.description,
-				shortDescription: shop.shortDescription,
-				logo: shop.logo,
-				color: shop.color,
-				roomNumber: shop.roomNumber,
-				cls: null
-			};
-		}
-		const element = floorData.elements[id];
-		if (element) {
-			return {
-				kind: 'poi',
-				id,
-				name: element.cls ? `${element.cls} ${id}` : `object ${id}`,
-				floor: floorData.number,
-				categories: [],
-				description: null,
-				shortDescription: null,
-				logo: null,
-				color: null,
-				roomNumber: null,
-				cls: element.cls
-			};
-		}
-		return null;
-	}
-
-	function handleKeydown(e: KeyboardEvent): void {
-		if (e.key === 'Escape') select(null);
-	}
-
-	function handleClick(e: MouseEvent): void {
-		if (!svgEl) return;
-		let el: Element | null = e.target as Element;
-		while (el && el !== svgEl) {
-			const id = el.getAttribute?.('id');
-			if (id) {
-				const sel = toSelection(id);
-				select(sel);
+		(async () => {
+			const application = new Application();
+			await application.init({
+				resizeTo: el,
+				background: 0xe8e6e9,
+				antialias: true,
+				resolution: Math.min(window.devicePixelRatio || 1, 2),
+				autoDensity: true,
+				preference: 'webgl'
+			});
+			if (dead) {
+				application.destroy(true);
 				return;
 			}
-			el = el.parentElement;
-		}
-		select(null);
-	}
+			app = application;
+			el.appendChild(app.canvas);
+			const canvas = app.canvas as HTMLCanvasElement;
+			canvas.classList.add('map-pixi-canvas');
+			canvas.style.display = 'block';
+			canvas.style.width = '100%';
+			canvas.style.height = '100%';
+			canvas.tabIndex = 0;
+			canvas.setAttribute('aria-label', 'Mall basemap');
+			canvas.style.touchAction = 'none';
+			canvas.style.cursor = 'grab';
 
-	$effect(() => {
-		void floorData;
-		rebuild();
+			worldHost = new Container();
+			app.stage.addChild(worldHost);
+			app.stage.eventMode = 'static';
+			app.stage.hitArea = app.screen;
+
+			scene = buildFloorScene(floor.svg, floor, shopList, (entity) => {
+				if (panning || dragMoved) return;
+				select(entity ? entityToSelection(entity) : null);
+			});
+			sceneRef = scene;
+			worldHost.addChild(scene.world);
+			setLayerVisibility(scene, {
+				walls: layers.walls,
+				tenants: layers.tenants,
+				poi: layers.poi,
+				walk: layers.walk
+			});
+			setSelectionHighlight(scene, view.selection?.id ?? null, highlightColor);
+			fitWorld(worldHost, scene.bounds, app.screen.width, app.screen.height);
+
+			const onPointerDown = (ev: PointerEvent) => {
+				dragMoved = false;
+				panning = false;
+				panLast = { x: ev.clientX, y: ev.clientY };
+				canvas.setPointerCapture?.(ev.pointerId);
+			};
+
+			const onPointerMove = (ev: PointerEvent) => {
+				if ((ev.buttons & 1) === 0 && (ev.buttons & 4) === 0) return;
+				if (!worldHost) return;
+				const dx = ev.clientX - panLast.x;
+				const dy = ev.clientY - panLast.y;
+				if (!dragMoved && Math.hypot(dx, dy) < 4) return;
+				dragMoved = true;
+				panning = true;
+				panLast = { x: ev.clientX, y: ev.clientY };
+				worldHost.position.x += dx;
+				worldHost.position.y += dy;
+				canvas.style.cursor = 'grabbing';
+			};
+
+			const resolveEntity = (hit: Container | null | undefined): FloorEntity | null => {
+				if (!hit || !scene) return null;
+				let node: Container | null = hit;
+				while (node) {
+					for (const ent of scene.entities.values()) {
+						if (ent.graphic === node || ent.hit === node || ent.visual === node) return ent;
+					}
+					node = node.parent;
+				}
+				return null;
+			};
+
+			const onPointerUp = (ev: PointerEvent) => {
+				if (!dragMoved && ev.button === 0 && app) {
+					const rect = canvas.getBoundingClientRect();
+					const cssX = ev.clientX - rect.left;
+					const cssY = ev.clientY - rect.top;
+					const hit = app.renderer.events.rootBoundary.hitTest(cssX, cssY);
+					const entity = resolveEntity(hit as Container | null);
+					select(entity ? entityToSelection(entity) : null);
+				}
+				dragMoved = false;
+				panning = false;
+				canvas.style.cursor = 'grab';
+			};
+
+			const onWheel = (ev: WheelEvent) => {
+				if (!worldHost) return;
+				ev.preventDefault();
+				const rect = canvas.getBoundingClientRect();
+				const mx = ev.clientX - rect.left;
+				const my = ev.clientY - rect.top;
+				const scale = worldHost.scale.x;
+				const next = Math.min(12, Math.max(0.05, scale * (ev.deltaY < 0 ? 1.12 : 1 / 1.12)));
+				const wx = (mx - worldHost.position.x) / scale;
+				const wy = (my - worldHost.position.y) / scale;
+				worldHost.scale.set(next);
+				worldHost.position.set(mx - wx * next, my - wy * next);
+			};
+
+			const onContext = (ev: Event) => ev.preventDefault();
+
+			canvas.addEventListener('pointerdown', onPointerDown);
+			canvas.addEventListener('pointermove', onPointerMove);
+			canvas.addEventListener('pointerup', onPointerUp);
+			canvas.addEventListener('pointercancel', onPointerUp);
+			canvas.addEventListener('wheel', onWheel, { passive: false });
+			canvas.addEventListener('contextmenu', onContext);
+			window.addEventListener('keydown', onKeyDown);
+
+			(app as Application & { __dispose?: () => void }).__dispose = () => {
+				canvas.removeEventListener('pointerdown', onPointerDown);
+				canvas.removeEventListener('pointermove', onPointerMove);
+				canvas.removeEventListener('pointerup', onPointerUp);
+				canvas.removeEventListener('pointercancel', onPointerUp);
+				canvas.removeEventListener('wheel', onWheel);
+				canvas.removeEventListener('contextmenu', onContext);
+				window.removeEventListener('keydown', onKeyDown);
+			};
+		})().catch((err) => console.error('Pixi map init failed', err));
+
+		return () => {
+			dead = true;
+			sceneRef = null;
+			const a = app as (Application & { __dispose?: () => void }) | null;
+			a?.__dispose?.();
+			scene?.destroy();
+			if (app) app.destroy(true, { children: true });
+			el.replaceChildren();
+		};
 	});
 
 	$effect(() => {
-		void layers.walls;
-		void layers.tenants;
-		void layers.categories;
-		void layers.poi;
-		applyLayers();
+		const s = sceneRef;
+		if (!s) return;
+		setLayerVisibility(s, {
+			walls: layers.walls,
+			tenants: layers.tenants,
+			poi: layers.poi,
+			walk: layers.walk
+		});
 	});
 
 	$effect(() => {
-		void view.selection;
-		applySelection();
-	});
-
-	$effect(() => {
-		return () => pz?.destroy();
+		const s = sceneRef;
+		if (!s) return;
+		setSelectionHighlight(s, view.selection?.id ?? null, highlightColor);
 	});
 </script>
 
 <div
 	class="map-canvas relative size-full overflow-hidden bg-muted/30"
-	bind:this={container}
-	onclick={handleClick}
-	onkeydown={handleKeydown}
-	tabindex="0"
+	bind:this={host}
 	role="application"
 	aria-label="Mall basemap"
 ></div>
+
+<style>
+	.map-canvas :global(canvas.map-pixi-canvas) {
+		width: 100%;
+		height: 100%;
+	}
+</style>

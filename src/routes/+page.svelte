@@ -8,7 +8,10 @@
 	import FloorSwitcher from '#lib/components/map/FloorSwitcher.svelte';
 	import SelectionPanel from '#lib/components/map/SelectionPanel.svelte';
 	import { view } from '#lib/state/map.svelte.js';
-	import type { NormalizedFloor } from '#lib/tango/adapters/index.js';
+	import {
+		themeToCssVars,
+		type NormalizedFloor
+	} from '#lib/tango/adapters/index.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -18,9 +21,28 @@
 	let loadingFloor = $state(false);
 	let syncing = $state(false);
 
-	// initial floor: mall default → first cached floor
+	const highlightColor = $derived(meta.mall?.theme?.highlight ?? '#f9c416');
+
+	// Apply Tango mall.theme → CSS vars (brand primary, surfaces, highlight)
+	$effect(() => {
+		const theme = meta.mall?.theme;
+		if (!theme || typeof document === 'undefined') return;
+		const root = document.documentElement;
+		const vars = themeToCssVars(theme);
+		for (const [key, value] of Object.entries(vars)) {
+			root.style.setProperty(key, value);
+		}
+		return () => {
+			for (const key of Object.keys(vars)) root.style.removeProperty(key);
+		};
+	});
+
+	// initial floor: mall default (if present in cache) → first cached floor
 	if (view.floor === null) {
-		view.floor = meta.mall?.defaultFloorNumber ?? meta.floors[0]?.number ?? null;
+		const preferred = meta.mall?.defaultFloorNumber ?? null;
+		const hasPreferred =
+			preferred !== null && meta.floors.some((f) => f.number === preferred);
+		view.floor = hasPreferred ? preferred : (meta.floors[0]?.number ?? null);
 	}
 
 	$effect(() => {
@@ -58,7 +80,7 @@
 			? 'destructive'
 			: meta.revision.syncStatus === 'stale'
 				? 'secondary'
-				: 'outline'
+				: 'green'
 	);
 </script>
 
@@ -76,7 +98,7 @@
 		<div class="ml-auto flex items-center gap-3">
 			<FloorSwitcher floors={meta.floors} />
 			<LayerSwitch />
-			<Button variant="outline" onclick={sync} disabled={syncing}>
+			<Button variant="outline" class="bg-primary hover:bg-primary/60" onclick={sync} disabled={syncing}>
 				{syncing ? 'Syncing…' : 'Sync'}
 			</Button>
 		</div>
@@ -105,21 +127,29 @@
 
 	<main class="relative min-h-0 flex-1 overflow-hidden rounded-lg border">
 		{#if meta.floors.length === 0}
-			<div class="flex h-full flex-col items-center justify-center gap-2">
-				<p class="text-lg font-medium">No basemap — sync failed</p>
+			<div class="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+				<p class="text-lg font-medium">No basemap cached</p>
+				<p class="max-w-md text-sm text-muted-foreground">
+					Cache is empty. Sync pulls floors from Tango API into Surreal. If the API is unreachable,
+					the app stays offline-safe and shows this error instead of crashing.
+				</p>
 				{#if meta.revision.lastError}
-					<p class="text-sm text-muted-foreground">{meta.revision.lastError.message}</p>
+					<p class="max-w-md text-sm text-destructive">
+						{meta.revision.lastError.path}: {meta.revision.lastError.message}
+					</p>
 				{/if}
-				<Button onclick={sync} disabled={syncing}>Retry sync</Button>
+				<Button onclick={sync} disabled={syncing}>
+					{syncing ? 'Syncing…' : 'Retry sync'}
+				</Button>
 			</div>
 		{:else if loadingFloor || !floorData}
 			<div class="flex h-full flex-col gap-2 p-6">
 				<Skeleton class="size-full" />
 			</div>
 		{:else}
-			<MapCanvas {floorData} shops={meta.shops} />
+			<MapCanvas {floorData} shops={meta.shops} {highlightColor} />
 		{/if}
 	</main>
 </div>
 
-<SelectionPanel categories={meta.categories} />
+<SelectionPanel shops={meta.shops} categories={meta.categories} />
