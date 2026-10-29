@@ -19,7 +19,9 @@
 
 	const shopById = $derived(new Map(shops.map((s) => [s.id, s])));
 	const catById = $derived(new Map(categories.map((c) => [c.id, c])));
-	const sel = $derived(view.selection);
+	const sel = $derived(
+		view.selection && view.selection.kind !== 'marker' ? view.selection : null
+	);
 
 	/** Prefer shop_cache; fall back to map selection payload. */
 	const shop = $derived(sel ? (shopById.get(sel.id) ?? null) : null);
@@ -45,15 +47,20 @@
 	const tags = $derived(splitTags(shop?.searchTags ?? null));
 
 	let open = $state(false);
+	// Guarded write — unconditional assign loops with Sheet bind:open.
 	$effect(() => {
-		open = sel !== null;
+		const shouldOpen = sel !== null;
+		if (open !== shouldOpen) open = shouldOpen;
 	});
 </script>
 
 <Sheet.Root
 	bind:open
 	onOpenChange={(v) => {
-		if (!v) view.selection = null;
+		// Don't wipe VPR marker selection when this shop sheet closes.
+		if (!v && view.selection && view.selection.kind !== 'marker') {
+			view.selection = null;
+		}
 	}}
 >
 	<Sheet.Content
@@ -152,7 +159,7 @@
 						<span class="ml-2 font-mono break-all">{sel.id}</span>
 					</p>
 					{#if shop?.updatedAt}
-						<p>Updated {new Date(shop.updatedAt).toLocaleString()}</p>
+						<p>Updated {new Date(String(shop.updatedAt)).toLocaleString()}</p>
 					{/if}
 					{#if !shop}
 						<p class="text-amber-600 dark:text-amber-400">
