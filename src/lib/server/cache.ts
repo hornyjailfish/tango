@@ -48,10 +48,27 @@ function asList<T>(rows: T[][] | T[]): T[] {
 	return Array.isArray(first) ? (first as T[]) : [];
 }
 
+function asIso(v: unknown): string | null {
+	if (v == null) return null;
+	if (v instanceof Date) return v.toISOString();
+	if (typeof v === 'string') return v;
+	return String(v);
+}
+
 export async function getRevision(): Promise<BasemapRevision> {
 	const rows = await query<BasemapRevision[]>('SELECT * FROM basemap_revision:current LIMIT 1');
-	const row = rows[0]?.[0];
-	return row ? { ...EMPTY_REVISION, ...row } : EMPTY_REVISION;
+	const row = rows[0]?.[0] as (BasemapRevision & { id?: unknown }) | undefined;
+	if (!row) return EMPTY_REVISION;
+	// Pick known fields only — transport toPojo still leaves an `id` string from RecordId.
+	return {
+		adapterVersion: row.adapterVersion ?? EMPTY_REVISION.adapterVersion,
+		contentHash: row.contentHash ?? null,
+		mallVersion: row.mallVersion ?? null,
+		etag: row.etag ?? null,
+		fetchedAt: asIso(row.fetchedAt),
+		syncStatus: row.syncStatus ?? EMPTY_REVISION.syncStatus,
+		lastError: row.lastError ?? null
+	};
 }
 
 export async function saveRevision(patch: Partial<BasemapRevision>): Promise<void> {
@@ -77,7 +94,10 @@ export async function getFloor(number: number): Promise<NormalizedFloor | null> 
 		'SELECT * FROM type::record("basemap_floor", $number) LIMIT 1',
 		{ number }
 	);
-	return rows[0]?.[0] ?? null;
+	const raw = rows[0]?.[0] as (NormalizedFloor & { id?: unknown }) | undefined;
+	if (!raw) return null;
+	const { id: _id, ...floor } = raw;
+	return floor;
 }
 
 export async function upsertShops(shops: NormalizedShop[]): Promise<void> {
@@ -95,14 +115,18 @@ export async function upsertShops(shops: NormalizedShop[]): Promise<void> {
 
 export async function getShops(): Promise<NormalizedShop[]> {
 	const rows = await query<NormalizedShop[]>('SELECT * FROM shop_cache');
-	return asList<NormalizedShop>(rows).map((raw) => ({
-		...raw,
-		id: recordKey(raw.id, 'shop_cache'),
-		name: raw.name ?? '',
-		searchTags: raw.searchTags ?? null,
-		categories: raw.categories ?? [],
-		isActive: raw.isActive ?? true
-	}));
+	return asList<NormalizedShop>(rows).map((raw) => {
+		const { id: _rid, ...rest } = raw as NormalizedShop & { id?: unknown };
+		return {
+			...rest,
+			id: recordKey(raw.id, 'shop_cache'),
+			name: raw.name ?? '',
+			searchTags: raw.searchTags ?? null,
+			categories: raw.categories ?? [],
+			isActive: raw.isActive ?? true,
+			updatedAt: asIso((raw as { updatedAt?: unknown }).updatedAt)
+		};
+	});
 }
 
 export async function upsertCategories(categories: NormalizedCategory[]): Promise<void> {
@@ -115,7 +139,6 @@ export async function upsertCategories(categories: NormalizedCategory[]): Promis
 export async function getCategories(): Promise<NormalizedCategory[]> {
 	const rows = await query<NormalizedCategory[]>('SELECT * FROM category_cache');
 	return asList<NormalizedCategory>(rows).map((c) => ({
-		...c,
 		id: recordKey(c.id, 'category_cache'),
 		name: c.name ?? recordKey(c.id, 'category_cache')
 	}));
@@ -130,10 +153,11 @@ export async function upsertMall(mall: NormalizedMall): Promise<void> {
 
 export async function getMall(): Promise<NormalizedMall | null> {
 	const rows = await query<NormalizedMall[]>('SELECT * FROM mall_cache LIMIT 1');
-	const raw = rows[0]?.[0] ?? null;
+	const raw = rows[0]?.[0] as (NormalizedMall & { id?: unknown }) | undefined;
 	if (!raw) return null;
+	const { id: _id, ...rest } = raw;
 	return ensureMallTheme({
-		...raw,
+		...rest,
 		id: recordKey(raw.id, 'mall_cache')
 	});
 }

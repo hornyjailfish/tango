@@ -19,10 +19,15 @@ export function recordKey(id: unknown, table?: string): string {
 
 	if (typeof id === 'object') {
 		const o = id as Record<string, unknown>;
-		// JSON-RPC often: { tb: "shop_cache", id: "hex" } or nested id
-		const tb = typeof o.tb === 'string' ? o.tb : typeof o.table === 'string' ? o.table : table;
-		if ('id' in o) return recordKey(o.id, tb);
-		return '';
+		// SDK RecordId: { table, id } — JSON-RPC legacy: { tb, id }
+		const tb =
+			typeof o.table === 'string'
+				? o.table
+				: typeof o.tb === 'string'
+					? o.tb
+					: table;
+		if ('id' in o && o.id !== id) return recordKey(o.id, tb ?? table);
+		// fall through to String() for exotic values
 	}
 
 	let s = String(id).trim();
