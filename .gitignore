@@ -10,6 +10,8 @@ node_modules
 
 .cache
 history.txt
+# Local runtime storage (marker_images bucket FS + leftovers)
+/data
 # OS
 .DS_Store
 Thumbs.db

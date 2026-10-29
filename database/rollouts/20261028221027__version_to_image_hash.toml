@@ -1,0 +1,444 @@
+id = "20261028221027__version_to_image_hash"
+name = "version-to-image-hash"
+source_schema_hash = "ad301433f67ec7108b54797ac5d7a61df8c92f62fa52ae631da3f49731576ac3"
+target_schema_hash = "1d7a6771c1fdd999b497fc02413847f7949a879e02e1c3a3b0b1a5313bbe381e"
+compatibility = "phased"
+renames = []
+
+[[steps]]
+id = "apply_expand_schema"
+phase = "start"
+kind = "apply_files"
+files = [
+    "database/schema/markers.surql",
+    "database/schema/schema.surql",
+    "database/schema/shop-search.surql",
+]
+
+# SCHEMAFULL: legacy `version` keys on rows break UPDATE after the field is gone.
+# Rebuild each row with CONTENT (drops version); image_hash VALUE fills from file bytes.
+[[steps]]
+id = "backfill_image_hash"
+phase = "start"
+kind = "run_sql"
+sql = """
+FOR $r IN (SELECT * FROM marker_views) {
+	UPDATE $r.id CONTENT {
+		marker: $r.marker,
+		image_url: $r.image_url,
+		content_type: $r.content_type,
+		created_at: $r.created_at
+	};
+};
+"""
+
+# Same for queue: drop version_snapshot key, set hash_snapshot from view, re-pend.
+[[steps]]
+id = "backfill_queue_hash_snapshot"
+phase = "start"
+kind = "run_sql"
+sql = """
+FOR $q IN (SELECT * FROM embedding_queue) {
+	LET $hash = IF $q.data != NONE {
+		(SELECT VALUE image_hash FROM ONLY $q.data)
+	} ELSE {
+		NONE
+	};
+	UPDATE $q.id CONTENT {
+		data: $q.data,
+		hash_snapshot: $hash,
+		status: 'pending',
+		error_message: NONE,
+		updated_at: time::now()
+	};
+};
+"""
+
+[[steps]]
+id = "assert_views_hashed"
+phase = "start"
+kind = "assert_sql"
+sql = "RETURN count(SELECT * FROM marker_views WHERE image_url != NONE AND image_hash = NONE);"
+expect = "0"
+
+# Field defs already absent after expand; REMOVE is idempotent cleanup.
+[[steps]]
+id = "drop_legacy_version_fields"
+phase = "complete"
+kind = "run_sql"
+sql = """
+REMOVE FIELD IF EXISTS version ON marker_views;
+REMOVE FIELD IF EXISTS version_snapshot ON embedding_queue;
+"""
+
+[[steps]]
+id = "rollback_expand_schema"
+phase = "rollback"
+kind = "remove_entities"
+
+[[steps.entities]]
+kind = "analyzer"
+name = "shop_search_engram"
+
+[[steps.entities]]
+kind = "bucket"
+name = "marker_images"
+
+[[steps.entities]]
+kind = "event"
+scope = "marker_views"
+name = "add_embedding_task"
+
+[[steps.entities]]
+kind = "event"
+scope = "marker_views"
+name = "remove_embedding_task"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "disabled"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "elements"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "graph"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "graphTranslation"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "idToPoints"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "number"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "portals"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_floor"
+name = "svg"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_revision"
+name = "adapterVersion"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_revision"
+name = "contentHash"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_revision"
+name = "etag"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_revision"
+name = "fetchedAt"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_revision"
+name = "lastError"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_revision"
+name = "mallVersion"
+
+[[steps.entities]]
+kind = "field"
+scope = "basemap_revision"
+name = "syncStatus"
+
+[[steps.entities]]
+kind = "field"
+scope = "category_cache"
+name = "name"
+
+[[steps.entities]]
+kind = "field"
+scope = "embedding_queue"
+name = "data"
+
+[[steps.entities]]
+kind = "field"
+scope = "embedding_queue"
+name = "error_message"
+
+[[steps.entities]]
+kind = "field"
+scope = "embedding_queue"
+name = "hash_snapshot"
+
+[[steps.entities]]
+kind = "field"
+scope = "embedding_queue"
+name = "status"
+
+[[steps.entities]]
+kind = "field"
+scope = "embedding_queue"
+name = "updated_at"
+
+[[steps.entities]]
+kind = "field"
+scope = "embeddings"
+name = "data"
+
+[[steps.entities]]
+kind = "field"
+scope = "embeddings"
+name = "embedding"
+
+[[steps.entities]]
+kind = "field"
+scope = "embeddings"
+name = "model"
+
+[[steps.entities]]
+kind = "field"
+scope = "mall_cache"
+name = "defaultFloorNumber"
+
+[[steps.entities]]
+kind = "field"
+scope = "mall_cache"
+name = "logotype"
+
+[[steps.entities]]
+kind = "field"
+scope = "mall_cache"
+name = "mallVersion"
+
+[[steps.entities]]
+kind = "field"
+scope = "mall_cache"
+name = "name"
+
+[[steps.entities]]
+kind = "field"
+scope = "mall_cache"
+name = "theme"
+
+[[steps.entities]]
+kind = "field"
+scope = "marker_views"
+name = "content_type"
+
+[[steps.entities]]
+kind = "field"
+scope = "marker_views"
+name = "created_at"
+
+[[steps.entities]]
+kind = "field"
+scope = "marker_views"
+name = "image_hash"
+
+[[steps.entities]]
+kind = "field"
+scope = "marker_views"
+name = "image_url"
+
+[[steps.entities]]
+kind = "field"
+scope = "marker_views"
+name = "marker"
+
+[[steps.entities]]
+kind = "field"
+scope = "markers"
+name = "created_at"
+
+[[steps.entities]]
+kind = "field"
+scope = "markers"
+name = "geometry"
+
+[[steps.entities]]
+kind = "field"
+scope = "markers"
+name = "label"
+
+[[steps.entities]]
+kind = "field"
+scope = "markers"
+name = "level"
+
+[[steps.entities]]
+kind = "field"
+scope = "markers"
+name = "updated_at"
+
+[[steps.entities]]
+kind = "field"
+scope = "markers"
+name = "zone"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "categories"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "color"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "description"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "floor"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "isActive"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "logo"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "name"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "roomNumber"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "searchName"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "searchTags"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "searchTagsText"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "searchText"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "shortDescription"
+
+[[steps.entities]]
+kind = "field"
+scope = "shop_cache"
+name = "updatedAt"
+
+[[steps.entities]]
+kind = "field"
+scope = "zones"
+name = "name"
+
+[[steps.entities]]
+kind = "function"
+name = "fn::image_hash"
+
+[[steps.entities]]
+kind = "index"
+scope = "embedding_queue"
+name = "embedding_queue_status"
+
+[[steps.entities]]
+kind = "index"
+scope = "embeddings"
+name = "embeddings_data"
+
+[[steps.entities]]
+kind = "index"
+scope = "marker_views"
+name = "marker_views_marker"
+
+[[steps.entities]]
+kind = "index"
+scope = "markers"
+name = "markers_level"
+
+[[steps.entities]]
+kind = "index"
+scope = "shop_cache"
+name = "shop_name_bm25"
+
+[[steps.entities]]
+kind = "index"
+scope = "shop_cache"
+name = "shop_tags_bm25"
+
+[[steps.entities]]
+kind = "table"
+name = "basemap_floor"
+
+[[steps.entities]]
+kind = "table"
+name = "basemap_revision"
+
+[[steps.entities]]
+kind = "table"
+name = "category_cache"
+
+[[steps.entities]]
+kind = "table"
+name = "embedding_queue"
+
+[[steps.entities]]
+kind = "table"
+name = "embeddings"
+
+[[steps.entities]]
+kind = "table"
+name = "mall_cache"
+
+[[steps.entities]]
+kind = "table"
+name = "marker_views"
+
+[[steps.entities]]
+kind = "table"
+name = "markers"
+
+[[steps.entities]]
+kind = "table"
+name = "shop_cache"
+
+[[steps.entities]]
+kind = "table"
+name = "zones"

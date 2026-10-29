@@ -1,0 +1,1469 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-28T22:14:09.4461787Z",
+  "namespace": "main",
+  "database": "vision",
+  "tables": [
+    {
+      "name": "__entity",
+      "define": "DEFINE TABLE __entity TYPE NORMAL SCHEMAFULL PERMISSIONS NONE",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "key",
+          "define": "DEFINE FIELD key ON __entity TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "ns",
+          "define": "DEFINE FIELD ns ON __entity TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "updated_at",
+          "define": "DEFINE FIELD updated_at ON __entity TYPE datetime DEFAULT time::now() PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "datetime"
+        },
+        {
+          "name": "val",
+          "define": "DEFINE FIELD val ON __entity TYPE any PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "any"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "any"
+        }
+      ],
+      "events": [],
+      "indexes": [
+        {
+          "name": "by_ns_key",
+          "define": "DEFINE INDEX by_ns_key ON __entity FIELDS ns, key UNIQUE"
+        }
+      ]
+    },
+    {
+      "name": "__rollout",
+      "define": "DEFINE TABLE __rollout TYPE NORMAL SCHEMAFULL PERMISSIONS NONE",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "completed_at",
+          "define": "DEFINE FIELD completed_at ON __rollout TYPE none | datetime PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | datetime"
+        },
+        {
+          "name": "id",
+          "define": "DEFINE FIELD id ON __rollout TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "last_error",
+          "define": "DEFINE FIELD last_error ON __rollout TYPE none | string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string"
+        },
+        {
+          "name": "manifest_checksum",
+          "define": "DEFINE FIELD manifest_checksum ON __rollout TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "manifest_path",
+          "define": "DEFINE FIELD manifest_path ON __rollout TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "name",
+          "define": "DEFINE FIELD name ON __rollout TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "source_entities",
+          "define": "DEFINE FIELD source_entities ON __rollout TYPE any PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "any"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "any"
+        },
+        {
+          "name": "source_schema_hash",
+          "define": "DEFINE FIELD source_schema_hash ON __rollout TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "started_at",
+          "define": "DEFINE FIELD started_at ON __rollout TYPE datetime DEFAULT time::now() PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "datetime"
+        },
+        {
+          "name": "status",
+          "define": "DEFINE FIELD status ON __rollout TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "steps",
+          "define": "DEFINE FIELD steps ON __rollout TYPE any DEFAULT [] PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "any"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "any"
+        },
+        {
+          "name": "target_entities",
+          "define": "DEFINE FIELD target_entities ON __rollout TYPE any PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "any"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "any"
+        },
+        {
+          "name": "target_schema_hash",
+          "define": "DEFINE FIELD target_schema_hash ON __rollout TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "updated_at",
+          "define": "DEFINE FIELD updated_at ON __rollout TYPE datetime DEFAULT time::now() PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "datetime"
+        }
+      ],
+      "events": [],
+      "indexes": [
+        {
+          "name": "by_rollout_id",
+          "define": "DEFINE INDEX by_rollout_id ON __rollout FIELDS id UNIQUE"
+        }
+      ]
+    },
+    {
+      "name": "basemap_floor",
+      "define": "DEFINE TABLE basemap_floor TYPE NORMAL SCHEMAFULL PERMISSIONS NONE",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "disabled",
+          "define": "DEFINE FIELD disabled ON basemap_floor TYPE array<string> PERMISSIONS FULL",
+          "type": {
+            "kind": "array",
+            "inner": {
+              "kind": "primitive",
+              "name": "string"
+            },
+            "max": null
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "array<string>"
+        },
+        {
+          "name": "disabled.*",
+          "define": "DEFINE FIELD disabled.* ON basemap_floor TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "elements",
+          "define": "DEFINE FIELD elements ON basemap_floor TYPE object FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "object FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "object FLEXIBLE"
+        },
+        {
+          "name": "graph",
+          "define": "DEFINE FIELD graph ON basemap_floor TYPE object FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "object FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "object FLEXIBLE"
+        },
+        {
+          "name": "graphTranslation",
+          "define": "DEFINE FIELD graphTranslation ON basemap_floor TYPE object FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "object FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "object FLEXIBLE"
+        },
+        {
+          "name": "idToPoints",
+          "define": "DEFINE FIELD idToPoints ON basemap_floor TYPE object FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "object FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "object FLEXIBLE"
+        },
+        {
+          "name": "number",
+          "define": "DEFINE FIELD number ON basemap_floor TYPE number PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "number"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "number"
+        },
+        {
+          "name": "portals",
+          "define": "DEFINE FIELD portals ON basemap_floor TYPE array<object> FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "array<object> FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "array<object> FLEXIBLE"
+        },
+        {
+          "name": "portals.*",
+          "define": "DEFINE FIELD portals.* ON basemap_floor TYPE object FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "object FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "object FLEXIBLE"
+        },
+        {
+          "name": "svg",
+          "define": "DEFINE FIELD svg ON basemap_floor TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        }
+      ],
+      "events": [],
+      "indexes": []
+    },
+    {
+      "name": "basemap_revision",
+      "define": "DEFINE TABLE basemap_revision TYPE NORMAL SCHEMAFULL PERMISSIONS NONE",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "adapterVersion",
+          "define": "DEFINE FIELD adapterVersion ON basemap_revision TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "contentHash",
+          "define": "DEFINE FIELD contentHash ON basemap_revision TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "etag",
+          "define": "DEFINE FIELD etag ON basemap_revision TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "fetchedAt",
+          "define": "DEFINE FIELD fetchedAt ON basemap_revision TYPE none | datetime | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "datetime"
+              },
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | datetime | string | null"
+        },
+        {
+          "name": "lastError",
+          "define": "DEFINE FIELD lastError ON basemap_revision TYPE none | object | null FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "none | object | null FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | object | null FLEXIBLE"
+        },
+        {
+          "name": "mallVersion",
+          "define": "DEFINE FIELD mallVersion ON basemap_revision TYPE none | number | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "number"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | number | null"
+        },
+        {
+          "name": "syncStatus",
+          "define": "DEFINE FIELD syncStatus ON basemap_revision TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        }
+      ],
+      "events": [],
+      "indexes": []
+    },
+    {
+      "name": "category_cache",
+      "define": "DEFINE TABLE category_cache TYPE NORMAL SCHEMAFULL PERMISSIONS NONE",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "name",
+          "define": "DEFINE FIELD name ON category_cache TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        }
+      ],
+      "events": [],
+      "indexes": []
+    },
+    {
+      "name": "embedding_queue",
+      "define": "DEFINE TABLE embedding_queue TYPE NORMAL SCHEMAFULL PERMISSIONS FULL",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "data",
+          "define": "DEFINE FIELD data ON embedding_queue TYPE none | record<marker_views> | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "record",
+                "tables": [
+                  "marker_views"
+                ]
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | record<marker_views> | null"
+        },
+        {
+          "name": "error_message",
+          "define": "DEFINE FIELD error_message ON embedding_queue TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "hash_snapshot",
+          "define": "DEFINE FIELD hash_snapshot ON embedding_queue TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "status",
+          "define": "DEFINE FIELD status ON embedding_queue TYPE string DEFAULT 'pending' ASSERT $value INSIDE ['pending', 'processing', 'failed', 'done'] PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "string"
+        },
+        {
+          "name": "updated_at",
+          "define": "DEFINE FIELD updated_at ON embedding_queue TYPE datetime DEFAULT time::now() VALUE time::now() PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "datetime"
+        }
+      ],
+      "events": [],
+      "indexes": [
+        {
+          "name": "embedding_queue_status",
+          "define": "DEFINE INDEX embedding_queue_status ON embedding_queue FIELDS status"
+        }
+      ]
+    },
+    {
+      "name": "embeddings",
+      "define": "DEFINE TABLE embeddings TYPE NORMAL SCHEMAFULL PERMISSIONS FULL",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "data",
+          "define": "DEFINE FIELD data ON embeddings TYPE record<marker_views> PERMISSIONS FULL",
+          "type": {
+            "kind": "record",
+            "tables": [
+              "marker_views"
+            ]
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "record<marker_views>"
+        },
+        {
+          "name": "embedding",
+          "define": "DEFINE FIELD embedding ON embeddings TYPE none | array<float> | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "array",
+                "inner": {
+                  "kind": "primitive",
+                  "name": "float"
+                },
+                "max": null
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | array<float> | null"
+        },
+        {
+          "name": "embedding.*",
+          "define": "DEFINE FIELD embedding.* ON embeddings TYPE float PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "float"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "float"
+        },
+        {
+          "name": "model",
+          "define": "DEFINE FIELD model ON embeddings TYPE string DEFAULT 'gberton/MegaLoc' PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "string"
+        }
+      ],
+      "events": [],
+      "indexes": [
+        {
+          "name": "embeddings_data",
+          "define": "DEFINE INDEX embeddings_data ON embeddings FIELDS data UNIQUE"
+        }
+      ]
+    },
+    {
+      "name": "mall_cache",
+      "define": "DEFINE TABLE mall_cache TYPE NORMAL SCHEMAFULL PERMISSIONS NONE",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "defaultFloorNumber",
+          "define": "DEFINE FIELD defaultFloorNumber ON mall_cache TYPE none | number | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "number"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | number | null"
+        },
+        {
+          "name": "logotype",
+          "define": "DEFINE FIELD logotype ON mall_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "mallVersion",
+          "define": "DEFINE FIELD mallVersion ON mall_cache TYPE none | number | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "number"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | number | null"
+        },
+        {
+          "name": "name",
+          "define": "DEFINE FIELD name ON mall_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "theme",
+          "define": "DEFINE FIELD theme ON mall_cache TYPE none | object | null FLEXIBLE PERMISSIONS FULL",
+          "type": {
+            "kind": "unknown",
+            "source": "none | object | null FLEXIBLE"
+          },
+          "optional": false,
+          "flexible": true,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | object | null FLEXIBLE"
+        }
+      ],
+      "events": [],
+      "indexes": []
+    },
+    {
+      "name": "marker_views",
+      "define": "DEFINE TABLE marker_views TYPE NORMAL SCHEMAFULL PERMISSIONS FULL",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "content_type",
+          "define": "DEFINE FIELD content_type ON marker_views TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "created_at",
+          "define": "DEFINE FIELD created_at ON marker_views TYPE datetime DEFAULT time::now() READONLY PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": true,
+          "hasDefault": true,
+          "rawType": "datetime"
+        },
+        {
+          "name": "image_hash",
+          "define": "DEFINE FIELD image_hash ON marker_views TYPE none | string | null DEFAULT (IF $this.image_url != NONE { fn::image_hash(file::get($this.image_url)) } ELSE { NONE }) VALUE (IF $this.image_url != NONE { fn::image_hash(file::get($this.image_url)) } ELSE { NONE }) PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "image_url",
+          "define": "DEFINE FIELD image_url ON marker_views TYPE none | file | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "unknown",
+                "source": "file"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | file | null"
+        },
+        {
+          "name": "marker",
+          "define": "DEFINE FIELD marker ON marker_views TYPE record<markers> PERMISSIONS FULL",
+          "type": {
+            "kind": "record",
+            "tables": [
+              "markers"
+            ]
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "record<markers>"
+        }
+      ],
+      "events": [
+        {
+          "name": "add_embedding_task",
+          "define": "DEFINE EVENT add_embedding_task ON marker_views WHEN $event != 'DELETE' AND $after.image_url != NONE AND $after.image_hash != NONE THEN { LET $hash = $after.image_hash; LET $qid = type::record('embedding_queue', record::id($after.id)); LET $q = (SELECT * FROM ONLY $qid); LET $changed = $before == NONE OR $before.image_url != $after.image_url OR $before.image_hash != $hash; LET $mismatch = $q != NONE AND $q.hash_snapshot != $hash; IF $changed OR $mismatch OR $q == NONE { UPSERT $qid SET data = $after.id, hash_snapshot = $hash, status = 'pending', error_message = NONE }; }"
+        },
+        {
+          "name": "remove_embedding_task",
+          "define": "DEFINE EVENT remove_embedding_task ON marker_views WHEN $event == 'DELETE' THEN { LET $file = $before.image_url; IF $file != NONE { file::delete($file) }; DELETE type::record('embedding_queue', record::id($before.id)); DELETE embeddings WHERE data = $before.id; }"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "marker_views_marker",
+          "define": "DEFINE INDEX marker_views_marker ON marker_views FIELDS marker"
+        }
+      ]
+    },
+    {
+      "name": "markers",
+      "define": "DEFINE TABLE markers TYPE NORMAL SCHEMAFULL PERMISSIONS FULL",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "created_at",
+          "define": "DEFINE FIELD created_at ON markers TYPE datetime DEFAULT time::now() READONLY PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": true,
+          "hasDefault": true,
+          "rawType": "datetime"
+        },
+        {
+          "name": "geometry",
+          "define": "DEFINE FIELD geometry ON markers TYPE geometry<point> PERMISSIONS FULL",
+          "type": {
+            "kind": "geometry",
+            "kinds": [
+              "point"
+            ]
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "geometry<point>"
+        },
+        {
+          "name": "label",
+          "define": "DEFINE FIELD label ON markers TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "level",
+          "define": "DEFINE FIELD level ON markers TYPE record<basemap_floor> PERMISSIONS FULL",
+          "type": {
+            "kind": "record",
+            "tables": [
+              "basemap_floor"
+            ]
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "record<basemap_floor>"
+        },
+        {
+          "name": "updated_at",
+          "define": "DEFINE FIELD updated_at ON markers TYPE datetime DEFAULT time::now() VALUE time::now() PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "datetime"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "datetime"
+        },
+        {
+          "name": "zone",
+          "define": "DEFINE FIELD zone ON markers TYPE none | record<zones> | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "record",
+                "tables": [
+                  "zones"
+                ]
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | record<zones> | null"
+        }
+      ],
+      "events": [],
+      "indexes": [
+        {
+          "name": "markers_level",
+          "define": "DEFINE INDEX markers_level ON markers FIELDS level"
+        }
+      ]
+    },
+    {
+      "name": "shop_cache",
+      "define": "DEFINE TABLE shop_cache TYPE NORMAL SCHEMAFULL PERMISSIONS NONE",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "categories",
+          "define": "DEFINE FIELD categories ON shop_cache TYPE array<string> PERMISSIONS FULL",
+          "type": {
+            "kind": "array",
+            "inner": {
+              "kind": "primitive",
+              "name": "string"
+            },
+            "max": null
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "array<string>"
+        },
+        {
+          "name": "categories.*",
+          "define": "DEFINE FIELD categories.* ON shop_cache TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "color",
+          "define": "DEFINE FIELD color ON shop_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "description",
+          "define": "DEFINE FIELD description ON shop_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "floor",
+          "define": "DEFINE FIELD floor ON shop_cache TYPE none | number | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "number"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | number | null"
+        },
+        {
+          "name": "isActive",
+          "define": "DEFINE FIELD isActive ON shop_cache TYPE bool PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "bool"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "bool"
+        },
+        {
+          "name": "logo",
+          "define": "DEFINE FIELD logo ON shop_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "name",
+          "define": "DEFINE FIELD name ON shop_cache TYPE string PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "string"
+        },
+        {
+          "name": "roomNumber",
+          "define": "DEFINE FIELD roomNumber ON shop_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "searchName",
+          "define": "DEFINE FIELD searchName ON shop_cache TYPE string DEFAULT '' PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "string"
+        },
+        {
+          "name": "searchTags",
+          "define": "DEFINE FIELD searchTags ON shop_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "searchTagsText",
+          "define": "DEFINE FIELD searchTagsText ON shop_cache TYPE string DEFAULT '' PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "string"
+        },
+        {
+          "name": "searchText",
+          "define": "DEFINE FIELD searchText ON shop_cache TYPE string DEFAULT '' PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "string"
+        },
+        {
+          "name": "shortDescription",
+          "define": "DEFINE FIELD shortDescription ON shop_cache TYPE none | string | null PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null"
+        },
+        {
+          "name": "updatedAt",
+          "define": "DEFINE FIELD updatedAt ON shop_cache TYPE none | string | null | datetime PERMISSIONS FULL",
+          "type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "primitive",
+                "name": "string"
+              },
+              {
+                "kind": "primitive",
+                "name": "null"
+              },
+              {
+                "kind": "primitive",
+                "name": "datetime"
+              }
+            ]
+          },
+          "optional": true,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": false,
+          "rawType": "none | string | null | datetime"
+        }
+      ],
+      "events": [],
+      "indexes": [
+        {
+          "name": "shop_name_bm25",
+          "define": "DEFINE INDEX shop_name_bm25 ON shop_cache FIELDS searchName FULLTEXT ANALYZER shop_search_engram BM25(1.2,0.75)"
+        },
+        {
+          "name": "shop_tags_bm25",
+          "define": "DEFINE INDEX shop_tags_bm25 ON shop_cache FIELDS searchTagsText FULLTEXT ANALYZER shop_search_engram BM25(1.2,0.75)"
+        }
+      ]
+    },
+    {
+      "name": "zones",
+      "define": "DEFINE TABLE zones TYPE NORMAL SCHEMAFULL PERMISSIONS FULL",
+      "schemafull": true,
+      "kind": "NORMAL",
+      "fields": [
+        {
+          "name": "name",
+          "define": "DEFINE FIELD name ON zones TYPE string DEFAULT '' PERMISSIONS FULL",
+          "type": {
+            "kind": "primitive",
+            "name": "string"
+          },
+          "optional": false,
+          "flexible": false,
+          "readonly": false,
+          "hasDefault": true,
+          "rawType": "string"
+        }
+      ],
+      "events": [],
+      "indexes": []
+    }
+  ],
+  "functions": [
+    {
+      "name": "fn::image_hash",
+      "define": "DEFINE FUNCTION fn::image_hash($data: any) { IF $data == NONE OR $data == NULL { RETURN NONE }; LET $payload = (IF type::is_bytes($data) { encoding::base64::encode($data) } ELSE IF type::is_string($data) { $data } ELSE { NONE }); IF $payload == NONE { RETURN NONE }; RETURN crypto::sha256($payload); } PERMISSIONS FULL",
+      "args": [
+        {
+          "name": "data",
+          "type": {
+            "kind": "primitive",
+            "name": "any"
+          },
+          "optional": false
+        }
+      ]
+    }
+  ],
+  "params": [],
+  "analyzers": [
+    {
+      "name": "shop_search_engram",
+      "define": "DEFINE ANALYZER shop_search_engram TOKENIZERS BLANK,CLASS FILTERS LOWERCASE, EDGENGRAM(2,8)"
+    }
+  ],
+  "accesses": [],
+  "apis": [],
+  "buckets": [
+    {
+      "name": "marker_images",
+      "define": "DEFINE BUCKET marker_images BACKEND 'file:///C:/Users/User/gits/vision/data/bucket?lowercase_paths=true' PERMISSIONS FULL"
+    }
+  ],
+  "sequences": [],
+  "configs": [],
+  "models": [],
+  "users": []
+}

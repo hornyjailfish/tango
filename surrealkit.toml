@@ -4,7 +4,8 @@
 #
  [variables]
  schema_prefix = "vision"
- bucket_path = "file:///C:/Users/User/gits/ee_map/data/bucket"
+ # Backend FS for DEFINE BUCKET marker_images only (vision project — not ee_map).
+ bucket_path = "file:///C:/Users/User/gits/vision/data/bucket?lowercase_paths=true"
  environment   = "development"
 
 # Generate TypeScript types from your schema (surrealdb JS SDK v2).

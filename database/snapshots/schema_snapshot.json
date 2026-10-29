@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "files": [
+    {
+      "path": "database/schema/markers.surql",
+      "hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "path": "database/schema/schema.surql",
+      "hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "path": "database/schema/shop-search.surql",
+      "hash": "ae06a831a4c380ca7c6c406d8ae30d4d409a2b2d455b60f14f6fa3fa6eb77152"
+    }
+  ]
+}

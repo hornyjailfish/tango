@@ -1,0 +1,613 @@
+{
+  "version": 2,
+  "entities": [
+    {
+      "kind": "analyzer",
+      "scope": null,
+      "name": "shop_search_engram",
+      "source_path": "database/schema/shop-search.surql",
+      "statement_hash": "904d46da5ea2a085875b06c7018f42cdc5596580dc4e05011b8fb53c8f8b61c9",
+      "file_hash": "ae06a831a4c380ca7c6c406d8ae30d4d409a2b2d455b60f14f6fa3fa6eb77152"
+    },
+    {
+      "kind": "bucket",
+      "scope": null,
+      "name": "marker_images",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "cb1962a699550d658b1f68903d7495509874f46a7be633c4274e5b40b3cecc68",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "event",
+      "scope": "marker_views",
+      "name": "add_embedding_task",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "89b87a14edb4d101f928a6d1bee5664e134b733ee973e6bc780227194e01797d",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "event",
+      "scope": "marker_views",
+      "name": "remove_embedding_task",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "2a2a0cdd91fbb48754cb3311eaf7ccc287c62fc465babd60c041cb185459e503",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "disabled",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "3474bf020aa23f731c770118cf2ac34cb05166aea5a6e68a0e7941dd4113c82c",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "elements",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "ed1878b61f132284d7cf67622c7b18932e2af1b0ade7f47fca59458222bd9ac6",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "graph",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "b135b09723de161b1733be430386faca07b63467ecf7f7b6b7b363491f49c567",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "graphTranslation",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "dea201518fa39e58b2ba565e868848be73aa96249677ae638de02a5118ba9ba3",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "idToPoints",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "d9a8e04bbf9240e88c61ce7c042ff60da8e92ed47b71cfe0cd390d178eee137f",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "number",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "e9ff7b5a94b058cde0fdd24dd58c3a9c563c7fe5fef83fe6295bb5a44c0ae55b",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "portals",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "c75a11c38baed27bed148b6f6fe6886eafc82a93834314ac0ec5975aeaab8726",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_floor",
+      "name": "svg",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "bc429a347e922a9f86b49816e87949834f6c47d5c12f6692d75ab4a4be403556",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_revision",
+      "name": "adapterVersion",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "013e11a784332dea49ffc65505c38dbd4c3dd8b90cfe66bc58e11e44e51379b9",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_revision",
+      "name": "contentHash",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "cc3bb66894877b0626f7c2e07ca3496baf5abaf73ec5070059c2e69a763dc6e5",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_revision",
+      "name": "etag",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "d6514b0d738091a124c0858d60df17562a3ce7531dfa06bcef3a1d01e4e5345b",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_revision",
+      "name": "fetchedAt",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "d49203218a0c15e020e8ffe53a04a58556dbcd53099a54ec8e280b107c0652de",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_revision",
+      "name": "lastError",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "c5799ccd4805a32654c00bdd6ac0b681a9e759469aa6ba0ae417a9e9a5c05f98",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_revision",
+      "name": "mallVersion",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "74d79d836f59b6fd2839dc52dfd79d15746e886595f8f5179919983bd71dc28f",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "basemap_revision",
+      "name": "syncStatus",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "2b57ddf98b7541a59dd300363bd282714e71298be11345aefa805d5c176c966f",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "category_cache",
+      "name": "name",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "9b66c66deeade49c30932765af90f57d148be1e44a449bfda5272c02224d009a",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "embedding_queue",
+      "name": "data",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "be98cc75afe8d33000e3cba6a39db9df665be95f1e7506c500320565287a6b04",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "embedding_queue",
+      "name": "error_message",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "481a032ba68d341e479139345a5fd8a865b63c074a0cb1af1dec0dd4a7b43f96",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "embedding_queue",
+      "name": "hash_snapshot",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "f2716e392478f2ea45bdff14a261d79f4ab4f6d17b6888fc7804a911d551913d",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "embedding_queue",
+      "name": "status",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "62525d28cfdea99611b8cdc013d6f4035d312cbc21afd2d8fd4681bae4871ce5",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "embedding_queue",
+      "name": "updated_at",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "336d66264694d6430de2ba97a427fb079a91edf9992b3372d6570e12a1bb1374",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "embeddings",
+      "name": "data",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "d2788fdfc3dd9b7db2c51cb06e0f02c133de1c15a9b48918e51ad7cc21d5693b",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "embeddings",
+      "name": "embedding",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "a7546ede52658853866762a6e5e586d5b8156a0a89e9dd14ade5a3ecf93cf2b2",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "embeddings",
+      "name": "model",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "108d1f3883289e1a4ef92e6fa18871c23c41b37267783013f71223c29d7cc6fc",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "mall_cache",
+      "name": "defaultFloorNumber",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "cc7957403a09fb0a5f6b87037c939a6e87a44e9a4012a524b30cd4616317ae9b",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "mall_cache",
+      "name": "logotype",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "2bc68d422260de7f4e43a1b7708661c38843d94eb14dbd561ee738af4f01da1e",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "mall_cache",
+      "name": "mallVersion",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "03aa960e0b8e85a104abd00472ab224bb45693a1b57a2829c45cf9bcae6567da",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "mall_cache",
+      "name": "name",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "7532928dd5cdcacff732bd6d9f21e8a40dca90ebf83866c2f5eccf57a3632adf",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "mall_cache",
+      "name": "theme",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "4af10ada0fadeaf1dea5bb2c3acc8acea852ed2106ec02750fa3d7ce1511ec90",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "marker_views",
+      "name": "content_type",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "37aebb420ac7f6ab61ff8bc7f7f71dda9882fe64d81cafcc9103e838006eac14",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "marker_views",
+      "name": "created_at",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "6d1e14f5c4b55f97a09e5ef58369011e10100af5d268fbde9a8d00a980f9ff0f",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "marker_views",
+      "name": "image_hash",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "2670cec8f2ea2f5b42ae0ef34336e8169ca15212e1222d3b21ed0cb2761eeea2",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "marker_views",
+      "name": "image_url",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "073a9f365625d9077e0a23a85982289d50a7e01fffb008e22d2cbb9b1ec0a6af",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "marker_views",
+      "name": "marker",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "8b6bb1b5c1af40772f8fbcc8b7acdab046ee72563b45d661f9667c6e2128858c",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "markers",
+      "name": "created_at",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "773c7c89c44ae14e9a329179bdb7306ba47fe0a09b1691e1e2d3135a38fb60b9",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "markers",
+      "name": "geometry",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "679db3fe04f4baeb214f3d258d022b062ef58f500ae8cdac374422856ce101c7",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "markers",
+      "name": "label",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "5cf868f163e67fa706156784c003a1af49e0f2b2f2da49a43f0248f9eeb6141d",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "markers",
+      "name": "level",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "2ff95bc43cbc81374ad3078b9e11dee1b1e4eae81a3f087b7fc6b7f6ad9c8af7",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "markers",
+      "name": "updated_at",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "4330b5c54a736ad71a2298686fc085e38f32c313da6883ddb4408fb7f6a073a3",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "markers",
+      "name": "zone",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "4578b4cc34acce553627b5380759b2e25c0158fe4f201e835ed35e561183e30d",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "categories",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "661c7ca075158101594c26b68ad0dcbd16bdbdeaf98f60b312597b1fef816489",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "color",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "2b128196900ee8bcd0f98f7cb45bf5f4ac4b92dcf8b7794037bb94f5ddfef77b",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "description",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "ddd93874581658c24490f0fa40f374c736145a8cc967576a695e7a0685b5b563",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "floor",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "52a2d73b7f505f3911f26fc1a521dc1e849d812067ce0a0302a1d5f92edc4e93",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "isActive",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "773a0302640ea96c7428cb69aac691f202163cae373fada84e93ea7c41a3788f",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "logo",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "539e01981ba10e92bd53dbcbf57bd1d04c060ed9b4478bb90c2dc9c16a313092",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "name",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "7b44f6bfe238a8506f0951e733d9b2e7e3c2017491faf98e14b5ae16f6c7e860",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "roomNumber",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "4692ae2de7c3b3c36c298fa7141e740563f88271017b0dddd73d1c3043895282",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "searchName",
+      "source_path": "database/schema/shop-search.surql",
+      "statement_hash": "186b5bf17326268b6c92b9ff42893cb3f137d2ef4e0e924d3c3515a28372795f",
+      "file_hash": "ae06a831a4c380ca7c6c406d8ae30d4d409a2b2d455b60f14f6fa3fa6eb77152"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "searchTags",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "4650c391bc0481d5674f3586800e16c5d959701759085618d4e816ca4e49ab8b",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "searchTagsText",
+      "source_path": "database/schema/shop-search.surql",
+      "statement_hash": "3e76882b69f31adec4b241115521776efaf4f32787655bf6d3f73ee45512f4ce",
+      "file_hash": "ae06a831a4c380ca7c6c406d8ae30d4d409a2b2d455b60f14f6fa3fa6eb77152"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "searchText",
+      "source_path": "database/schema/shop-search.surql",
+      "statement_hash": "1ec792f853e62d16d19cea57711b83c5a8b690144ebbd9c5d69f5f5b4c7b9325",
+      "file_hash": "ae06a831a4c380ca7c6c406d8ae30d4d409a2b2d455b60f14f6fa3fa6eb77152"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "shortDescription",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "38b4500da449661f112fff54e56982a3238fe1a8054d31ea303d827a9d527659",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "shop_cache",
+      "name": "updatedAt",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "218c5e3da4241ba9a31e9bb088653e9787be6778bca91f1ca9b0b535d35199c9",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "field",
+      "scope": "zones",
+      "name": "name",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "7eb7cc398d61deedf42329a968dc6beca66ba2736488219ea3fff153cc89aa8b",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "function",
+      "scope": null,
+      "name": "fn::image_hash",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "548691da64efb67e8feccbb5a560f5c5694b888e7ea12c50b9002bf694d4d5ae",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "index",
+      "scope": "embedding_queue",
+      "name": "embedding_queue_status",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "0cc6897e45e8adb7a9487e55777abca87fba995e80aea90c460803a2b0adda58",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "index",
+      "scope": "embeddings",
+      "name": "embeddings_data",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "5ac891831cf600ce8305d3efd97f2186120365bc0c5f78e57be71db9bd9994e6",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "index",
+      "scope": "marker_views",
+      "name": "marker_views_marker",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "62e2569d710d544bad4273240b3d6c5bae3c632263f73c65d52d8e1b66221f9c",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "index",
+      "scope": "markers",
+      "name": "markers_level",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "c9697e1575251513c76871d1cb0437935f3f39dda607ecc2769c31d2afe30a2c",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "index",
+      "scope": "shop_cache",
+      "name": "shop_name_bm25",
+      "source_path": "database/schema/shop-search.surql",
+      "statement_hash": "5bfa5dc2cc6a30ceec0d5ac94226e8281b3fd3aa5e0c8bad3b53a56ee53e9aab",
+      "file_hash": "ae06a831a4c380ca7c6c406d8ae30d4d409a2b2d455b60f14f6fa3fa6eb77152"
+    },
+    {
+      "kind": "index",
+      "scope": "shop_cache",
+      "name": "shop_tags_bm25",
+      "source_path": "database/schema/shop-search.surql",
+      "statement_hash": "3b6ed37f2d603776dce969b91418f163fbcc28326688ee4e877a5d1e84d9db78",
+      "file_hash": "ae06a831a4c380ca7c6c406d8ae30d4d409a2b2d455b60f14f6fa3fa6eb77152"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "basemap_floor",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "7c587b669bbb92c1cfe630b6829a60489153dc47aa887fa7bff03ab296f0b2a2",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "basemap_revision",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "d5d5236aee41541d6ff908dd40d4a58a73aa474261ae9a6e01e91c28395475e4",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "category_cache",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "72a08cc45d454b2973a72e3938ef5a8736c2500646780567bdd481f84ef97b22",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "embedding_queue",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "a43843713229652562ab2f8fb486530e72c56cd2205813e090008fe394d36661",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "embeddings",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "fadb92ca47b22b491b9162251332c665241f64e4d3c88bf514f1c5aef30faf9d",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "mall_cache",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "d513ed21ebf4d3afd60c0fb1152983a974986ad1c79dc83b59e87f997a8b0972",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "marker_views",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "90674de9cabbdfc2a55dc120a1e93e71b541ab46873840325ed179631f727729",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "markers",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "9f94f73a8d8d867b0866277f9b85630c15ac252c857fce69fcaea27aaf6dc095",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "shop_cache",
+      "source_path": "database/schema/schema.surql",
+      "statement_hash": "175c0da292141ce26330ecfbf4ec6c5ad495898e503c7d2f7aacdfd83723c231",
+      "file_hash": "77faec5c36224a5edc5b155bdefef53bdd4f58b0bb52646d3fb07efc4eb50208"
+    },
+    {
+      "kind": "table",
+      "scope": null,
+      "name": "zones",
+      "source_path": "database/schema/markers.surql",
+      "statement_hash": "7020e0f2c66bd7dcf0c7ad306de0ed501b2185f052df532c3526f6812af895cb",
+      "file_hash": "7373e7081ea6f276ad2ea7ce4e17a9fd42f58a75bf6c665d324c3390d7fb1363"
+    }
+  ]
+}
