@@ -7,7 +7,10 @@
 	import LayerSwitch from '#lib/components/map/LayerSwitch.svelte';
 	import FloorSwitcher from '#lib/components/map/FloorSwitcher.svelte';
 	import SelectionPanel from '#lib/components/map/SelectionPanel.svelte';
+	import MarkerPanel from '#lib/components/map/MarkerPanel.svelte';
+	import MarkerToolbar from '#lib/components/map/MarkerToolbar.svelte';
 	import ShopSearch from '#lib/components/map/ShopSearch.svelte';
+	import VprSearch from '#lib/components/map/VprSearch.svelte';
 	import { view } from '#lib/state/map.svelte.js';
 	import {
 		themeToCssVars,
@@ -100,6 +103,8 @@
 		{/if}
 		<div class="ml-auto flex flex-wrap items-center gap-3">
 			<ShopSearch />
+			<VprSearch />
+			<MarkerToolbar />
 			<FloorSwitcher floors={meta.floors} />
 			<LayerSwitch />
 			<Button
@@ -162,3 +167,4 @@
 </div>
 
 <SelectionPanel shops={meta.shops} categories={meta.categories} />
+<MarkerPanel />

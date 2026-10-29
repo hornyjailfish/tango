@@ -362,11 +362,13 @@ Access: `src/lib/server/cache.ts` (get/upsert) ← `sync.ts` writes, `basemap.ts
 - `breaker` — devices on boards
 - `load` — circuits/tenancies; optional `tango_shop_id`
 - `breaker_connection` — optional non-tree power edges
-- `vpr_hit` / `marker` — confirmed visual searches
+- `markers` — VPR pins on plan (`floor`/`level` → `basemap_floor`, `zone_id?`, geometry point x/y, optional `label`)
+- `marker_views` — photos per marker (`image_url` file → bucket `marker_images`, `content_type`, `image_hash`, timestamps)
+- `embedding_queue` / `embeddings` — encode jobs + stored vectors (worker/service side)
 - `work_order` (later) — batch of markers / jobs
 - auth/users as needed
 
-**Images + embeddings:** Surreal v3 bucket + vector features (per product direction).
+**Images + embeddings:** Surreal file bucket `marker_images` + external MegaLoc FastAPI (`EMBEDDING_SERVICE_URL` / `VPR_SERVICE_URL`). App searches via `POST /api/vpr/search`; encode pipeline is service/queue-owned.
 
 ---
 
@@ -382,7 +384,8 @@ Access: `src/lib/server/cache.ts` (get/upsert) ← `sync.ts` writes, `basemap.ts
 | Validation      | Zod adapters MapV1 / ShopV1 / MallV1                                   |
 | Data            | SurrealDB **HTTP RPC** `fetch` (`db.ts`); no `surrealdb.js` (3.x gate) |
 | UI              | shadcn-svelte (vendored) / Bits — sheet, layers, floor tabs, alerts    |
-| State           | `src/lib/state/map.svelte.ts` — floor, layers, selection               |
+| State           | `src/lib/state/map.svelte.ts` — floor, layers, selection, place/move marker modes, in-memory markers |
+| Markers / VPR UI | `MarkerToolbar`, `MarkerPanel`, `VprSearch`; remote cmds in `markers.remote.ts` |
 | Explicitly skip | Three, Threlte, Leaflet/Mapbox, Tango web-sdk, category-as-map-layer   |
 
 ### Multi-floor routing
@@ -397,12 +400,13 @@ Access: `src/lib/server/cache.ts` (get/upsert) ← `sync.ts` writes, `basemap.ts
 - Result actions: **focus map**, **show feed path**, **walk route to room**
 - Unlinked shop → CTA “Link to breaker/load”
 
-### VPR UI (later)
+### VPR UI (shipped slice)
 
-1. Upload/capture image
-2. Backend embed + query Surreal zones/rooms
-3. Top-K → pins on map
-4. Confirm → marker; open electrical context for that room if any
+1. Drop / pick photo (toolbar **VPR** or window DnD) → `POST /api/vpr/search`
+2. Embedding service MegaLoc search (optional floor filter + `min_score` / `top_k`)
+3. Top-K hits in panel → click selects/upserts marker + fits map
+4. Manual place / move / label / multi-photo on markers (Surreal + bucket)
+5. **Later:** auto-confirm into EE room context / power path when rooms exist
 
 ### Batch “best walk path” (later, low prio)
 
@@ -424,7 +428,8 @@ Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest d
 
 ## Implementation phases
 
-**Status (2025-10-28): Phase 0–1 done.** Next: Phase 2 (walk routing on cached graph).
+**Status (2026-03-28): Phase 0–1 done. Phase 5 VPR markers + photo-search slice largely done.**
+Next priority still Phase 2 (walk routing) + Phases 3–4 (EE/power); VPR polish as needed.
 
 ### Phase 0 — skeleton
 
@@ -469,11 +474,26 @@ Messenger ingest (WhatsApp/Telegram/etc.): **later**; design API so any ingest d
 - [ ] Upstream/downstream walk on power tree
 - [ ] Unified search → map focus + feed tree drawer + optional walk-to-room
 
-### Phase 5 — VPR
+### Phase 5 — VPR (markers + photo search) — mostly ✅
 
-- [ ] Image bucket + embedding pipeline
-- [ ] Search → ranked zones/rooms → confirm marker
-- [ ] Tie marker to room electrical context when present
+**Data / server**
+
+- [x] Surreal `markers`, `marker_views`, bucket `marker_images` (`database/schema/markers.surql`)
+- [x] CRUD helpers `src/lib/server/markers.ts` + remote `src/lib/markers.remote.ts`
+- [x] Image serve `GET /api/marker-images/[...path]`; view upload `POST /api/markers/[id]/views`
+- [x] Embedding client `src/lib/server/embedding.ts` → FastAPI MegaLoc (`vprSearch`, `asLabel` normalizer)
+- [x] HTTP search API `POST /api/vpr/search` (multipart `image`, optional `top_k`/`min_score`/`floor`/`target`)
+- [x] Queue status surfaced on views (`embedding_queue` join for pending/done/error UI)
+
+**Map / UI**
+
+- [x] Place marker mode (click plan → create on current floor)
+- [x] Select marker → `MarkerPanel`: label edit, delete marker, **multi-photo** upload (concurrency 3), delete view, lightbox
+- [x] **Move marker** mode (sidebar Move → map click → `patchMarker` coords; Esc/cancel; exclusive w/ place mode)
+- [x] Floor markers load/refresh; pins on Pixi canvas; selection highlight
+- [x] `VprSearch`: panel + window image drop; score threshold slider (rescores last file); **Floor N / All floors** toggle; hardened titles (no `[object Object]`); floor badge = number only
+- [ ] Search → ranked **EE zones/rooms** (needs Phase 3 rooms) → confirm into electrical context
+- [ ] Auto-ingest path (messenger → VPR) — later
 
 ### Phase 6 — crew polish (as needed)
 
@@ -542,9 +562,25 @@ curl -s "https://api.tango.vision/category?mall=6804d32a394e07fd48a1447c" -o cat
 - [ ] Pick/search shop → walk route on graph *(Phase 2)*
 - [ ] Create EE room → on map (Surreal)
 - [ ] Board + breaker + load linked to a shop → search shop → **feed tree + room highlight**
-- [ ] (VPR slice) image → candidate room pins → confirm
+- [x] (VPR markers) place / move / label / multi-photo; image → ranked **marker** pins → select on map
+- [ ] (VPR→EE) image → candidate **room** pins → confirm + electrical context *(needs Phase 3–4)*
 
-When that works, the rest is enrichment.
+When walk + EE feed path work, the rest is enrichment.
+
+---
+
+## VPR HTTP API (current)
+
+Programmatic — no UI required.
+
+| Method | Path | Body | Notes |
+| ------ | ---- | ---- | ----- |
+| `POST` | `/api/vpr/search` | `multipart/form-data` | **`image`** (required); `top_k`/`topK` (default 8, max 30); `min_score`/`minScore` (default 0.35); `floor` (optional → `basemap_floor:N`); `target` (default `markers`) |
+| `POST` | `/api/markers/[id]/views` | `multipart` field `image` | Add view photo; triggers encode queue side |
+| `GET`  | `/api/marker-images/[...path]` | — | Serve bucket object |
+| remotes | `listMarkers` / `placeMarker` / `patchMarker` / `removeMarker` / `listMarkerViews` / `removeMarkerView` | SvelteKit remote functions | UI + scripts via app |
+
+Env: `EMBEDDING_SERVICE_URL` or `VPR_SERVICE_URL` (MegaLoc FastAPI).
 
 ---
 
@@ -556,7 +592,19 @@ When that works, the rest is enrichment.
 | Sync / cache / basemap load | OK; JSON-decode upserts; `recordKey` ids |
 | Pixi map + layers + shop click | OK |
 | Selection panel | OK (tags keyed by index) |
+| Shop search | OK (`ShopSearch`) |
 | shadcn ui kit | Vendored; usable |
+| **VPR markers** | **OK** — place, move, delete, label, multi-photo, view queue badges |
+| **VPR photo search** | **OK** — UI + `POST /api/vpr/search`; threshold + floor-scope toggle; DnD |
+| Embedding service | External MegaLoc; app is client only |
 | Walk routing | **Not started** — Phase 2 |
-| EE / power / VPR | Not started — Phases 3–5 |
+| EE rooms / power topology | **Not started** — Phases 3–4 |
+| VPR → EE room context | Blocked on Phase 3–4 |
 | `.cache/` on disk | Scratch only; not part of product |
+
+### Recent shipped (markers / VPR)
+
+- Move misplaced pins: panel **Move** → map click → DB coords (`patchMarker` / `updateMarker`)
+- Multi-file photo upload on a marker (optimistic previews, ≤3 parallel POSTs, partial-fail reporting)
+- VPR result labels: `asLabel` server-side + client `hitTitle` (no `[object Object]`)
+- Floor badge plain number; score slider + **This floor / All floors** rescore without re-picking file
