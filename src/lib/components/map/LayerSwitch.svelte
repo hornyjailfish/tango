@@ -6,10 +6,13 @@
 		walls: 'Walls',
 		tenants: 'Tenants',
 		poi: 'POI',
-		walk: 'Walk'
+		walk: 'Walk',
+		markers: 'Markers'
 	};
 
-	let value = $state((Object.keys(LABELS) as LayerKey[]).filter((k) => layers[k] && k != 'walk'));
+	let value = $state(
+		(Object.keys(LABELS) as LayerKey[]).filter((k) => layers[k] && k !== 'walk')
+	);
 
 	$effect(() => {
 		for (const key of Object.keys(LABELS) as LayerKey[]) {
